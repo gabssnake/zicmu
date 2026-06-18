@@ -14,8 +14,10 @@ Led Zeppelin - Led Zeppelin IV (1971).mp3
 Jacques Brel - Grand Jacques (1954).mp3
 ```
 
-The artist and title become the album ID (lowercased, accents stripped, spaces to hyphens):
-`led-zeppelin_led-zeppelin-iv`, `jacques-brel_grand-jacques`
+The filename stem (everything before `.mp3`) becomes the album ID:
+`Led Zeppelin - Led Zeppelin IV (1971)`, `Jacques Brel - Grand Jacques (1954)`
+
+The ID is used as the key in `albums.json` and as the basename for the companion files in `media/` (`<id>.jpg`, `<id>.json`). Keep filenames unambiguous — no two albums should share the same stem.
 
 Year is optional but helps the cover and track lookup match the right release.
 
@@ -78,3 +80,7 @@ ingest/cache/
 ```
 
 All of these can be deleted and rebuilt by re-running the pipeline.
+
+## Per-album records in media/
+
+`build-albums.js` writes a `media/<id>.json` for each album. These are the approved per-album records — not throwaway. `build-albums.js` skips albums that already have a JSON in `media/` so that manual timestamp corrections are preserved across rebuilds. Edit these files to fix track data; then re-run `build-albums.js` (which calls `build-index.js` indirectly through `serve.js`) to update `albums.json`.
