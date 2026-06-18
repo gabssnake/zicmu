@@ -50,6 +50,24 @@ node ingest/validate-reviews.js
 
 This lists albums flagged for manual timestamp review. A flag means the silence detector and the API disagree on track boundaries — it's expected on live albums and compilations, not a failure. Fix timestamps by editing `ingest/cache/tracks/<id>.json` and re-running `build-albums.js`. See `ingest/verify-timestamps.md` for the step-by-step workflow.
 
+## Refreshing an existing album
+
+`build-albums.js` skips albums that already have an entry in `albums.json` to preserve manual edits. To force a full rebuild for a specific album — for example after correcting its cover or track timestamps — delete its entry from `albums.json`, then re-run:
+
+```bash
+node ingest/build-albums.js
+```
+
+To also re-fetch tracks or covers from scratch, delete the relevant cache files first:
+
+```bash
+rm ingest/cache/tracks/<id>.json   # re-runs MusicBrainz + silence detection
+rm media/<id>.jpg                  # re-runs cover fetch
+node ingest/fetch-tracks.js
+node ingest/fetch-covers.js
+node ingest/build-albums.js
+```
+
 ## Cache files (throwaway)
 
 ```

@@ -38,37 +38,25 @@ function titleScore(resultTitle, searchTitle) {
   return 0;
 }
 
-// Strip trailing Roman numeral if it's a standalone suffix added by the rip (e.g. "Led Zeppelin I")
-// Only strip if the bare title without the numeral is likely the official name
-function mbSearchTitle(title) {
-  const stripped = title.replace(/\s+[IVX]+$/, '').trim();
-  // return both: search with original first, fallback to stripped
-  return [title, stripped].filter((v, i, a) => a.indexOf(v) === i);
-}
-
 // --- MusicBrainz ---
 
 async function searchMB(artist, title, year) {
-  const queries = mbSearchTitle(title).map(t => `artist:${artist} AND release:${t}`);
-  for (const q of queries) {
-    const url = `https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(q)}&limit=10&fmt=json`;
-    await sleep(1150);
-    try {
-      const res = await fetch(url, { headers: { 'User-Agent': MB_UA } });
-      if (!res.ok) continue;
-      const data = await res.json();
-      const releases = (data.releases ?? []).filter(r =>
-        ['Album', 'Compilation'].includes(r['release-group']?.['primary-type'])
-      );
-      if (!releases.length) continue;
-      // sort by year closeness
-      releases.sort((a, b) => yearDiff(a.date, year) - yearDiff(b.date, year));
-      return releases[0];
-    } catch {
-      // try next query
-    }
+  const q = `artist:${artist} AND release:${title}`;
+  const url = `https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(q)}&limit=10&fmt=json`;
+  await sleep(1150);
+  try {
+    const res = await fetch(url, { headers: { 'User-Agent': MB_UA } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const releases = (data.releases ?? []).filter(r =>
+      ['Album', 'Compilation'].includes(r['release-group']?.['primary-type'])
+    );
+    if (!releases.length) return null;
+    releases.sort((a, b) => yearDiff(a.date, year) - yearDiff(b.date, year));
+    return releases[0];
+  } catch {
+    return null;
   }
-  return null;
 }
 
 async function tryMBCover(release) {
@@ -138,13 +126,10 @@ async function processAlbum(album) {
     return { id: album.id, status: 'exists' };
   }
 
-  // strip side indicators for search
-  const searchTitle = album.title.replace(/[-–]\s*side\s+[ab]$/i, '').trim();
-
   // 1. Try MusicBrainz → Cover Art Archive (release-group)
   let mbRelease = null;
   try {
-    mbRelease = await searchMB(album.artist, searchTitle, album.year);
+    mbRelease = await searchMB(album.artist, album.title, album.year);
   } catch (err) {
     console.error(`  MB search failed for ${album.id}: ${err.message}`);
   }
@@ -169,7 +154,7 @@ async function processAlbum(album) {
 
   // 2. Try iTunes (multiple countries)
   try {
-    const itResult = await tryITunes(album.artist, searchTitle, album.year);
+    const itResult = await tryITunes(album.artist, album.title, album.year);
     if (itResult) {
       writeFileSync(join(MEDIA_DIR, `${album.id}.jpg`), itResult.buf);
       return {

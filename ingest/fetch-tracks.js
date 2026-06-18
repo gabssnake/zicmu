@@ -50,53 +50,33 @@ function crossReference(apiTracks, silences) {
   });
 }
 
-// Strip trailing Roman numeral suffix added by the rip (e.g. "Led Zeppelin I" → "Led Zeppelin")
-function mbTitleVariants(title) {
-  const stripped = title.replace(/\s+[IVX]+$/, '').trim();
-  return [title, stripped].filter((v, i, a) => a.indexOf(v) === i);
-}
-
-// Strip side indicator for Rastaman Vibration-style titles
-function mbSearchTitle(album) {
-  return album.title.replace(/[-–]\s*side\s+[ab]$/i, '').trim();
-}
-
 async function fetchMusicBrainz(album) {
   const headers = { 'User-Agent': 'zicmu/1.0 (personal music player)' };
-  const baseTitle = mbSearchTitle(album);
-  const titleVariants = mbTitleVariants(baseTitle);
+  // unquoted query — more permissive, avoids Broadcast-only results
+  const q = `artist:${album.artist} AND release:${album.title}`;
+  const searchUrl = `https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(q)}&limit=10&fmt=json`;
 
-  let bestRelease = null;
-  for (const title of titleVariants) {
-    // unquoted query — more permissive, avoids Broadcast-only results
-    const q = `artist:${album.artist} AND release:${title}`;
-    const searchUrl = `https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(q)}&limit=10&fmt=json`;
+  await sleep(MB_DELAY);
+  const searchRes = await fetch(searchUrl, { headers });
+  if (!searchRes.ok) return null;
+  const searchData = await searchRes.json();
 
-    await sleep(MB_DELAY);
-    const searchRes = await fetch(searchUrl, { headers });
-    if (!searchRes.ok) continue;
-    const searchData = await searchRes.json();
+  const releases = (searchData.releases || []).filter(r => {
+    const type = r['release-group']?.['primary-type'];
+    if (type !== 'Album' && type !== 'Compilation') return false;
+    const media = r.media || [];
+    return media.some(m => (m['track-count'] || 0) > 0);
+  });
 
-    const releases = (searchData.releases || []).filter(r => {
-      const type = r['release-group']?.['primary-type'];
-      if (type !== 'Album' && type !== 'Compilation') return false; // exclude Broadcast etc.
-      const media = r.media || [];
-      return media.some(m => (m['track-count'] || 0) > 0);
-    });
+  if (!releases.length) return null;
 
-    if (!releases.length) continue;
-
-    // sort by year closeness
-    releases.sort((a, b) => {
-      const ay = a.date ? Math.abs((album.year || 0) - Number.parseInt(a.date.slice(0, 4))) : 999;
-      const by = b.date ? Math.abs((album.year || 0) - Number.parseInt(b.date.slice(0, 4))) : 999;
-      return ay - by;
-    });
-    bestRelease = releases[0];
-    break;
-  }
-
-  if (!bestRelease) return null;
+  // sort by year closeness
+  releases.sort((a, b) => {
+    const ay = a.date ? Math.abs((album.year || 0) - Number.parseInt(a.date.slice(0, 4))) : 999;
+    const by = b.date ? Math.abs((album.year || 0) - Number.parseInt(b.date.slice(0, 4))) : 999;
+    return ay - by;
+  });
+  const bestRelease = releases[0];
 
   await sleep(MB_DELAY);
   const detailRes = await fetch(
