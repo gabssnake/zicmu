@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="../">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura | Minimal Audio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+
+        .fade-enter { opacity: 0; transform: translateY(10px); }
+        .fade-enter-active { opacity: 1; transform: translateY(0); transition: opacity 400ms, transform 400ms; }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            margin-top: -4px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #52525b;
+            border-radius: 2px;
+        }
+        input[type=range]:focus { outline: none; }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 font-sans antialiased overflow-hidden selection:bg-zinc-700">
+
+    <div id="ambient-bg" class="fixed inset-0 z-0 bg-cover bg-center transition-all duration-1000 opacity-0 scale-105 pointer-events-none"></div>
+    <div class="fixed inset-0 z-0 bg-zinc-950/80 backdrop-blur-3xl pointer-events-none"></div>
+
+    <main class="relative z-10 w-full h-screen flex flex-col">
+
+        <header class="px-6 py-8 md:px-12 md:py-10 flex justify-between items-center shrink-0">
+            <h1 id="app-title" class="text-xl font-medium tracking-wide cursor-pointer hover:text-zinc-300 transition-colors">Aura.</h1>
+            <button id="back-btn" class="hidden text-sm font-medium text-zinc-400 hover:text-zinc-100 transition-colors flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                Library
+            </button>
+        </header>
+
+        <section id="library-view" class="flex-1 overflow-y-auto px-6 md:px-12 pb-24">
+            <div id="album-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-8">
+            </div>
+        </section>
+
+        <section id="player-view" class="hidden flex-1 flex-col md:flex-row overflow-hidden px-6 md:px-12 pb-12 gap-8 md:gap-16">
+
+            <div class="w-full md:w-1/2 lg:w-2/5 flex flex-col justify-center max-w-lg mx-auto shrink-0">
+                <div class="relative w-full aspect-square rounded-lg overflow-hidden shadow-2xl shadow-black/60 mb-8 group">
+                    <img id="now-playing-art" src="" alt="Album Art" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                </div>
+
+                <div class="flex flex-col gap-4">
+                    <div class="flex justify-between items-end">
+                        <div class="min-w-0">
+                            <h2 id="now-playing-title" class="text-2xl md:text-3xl font-semibold truncate">Track Title</h2>
+                            <p id="now-playing-artist" class="text-zinc-400 text-lg truncate mt-1">Artist Name</p>
+                        </div>
+                    </div>
+
+                    <div class="w-full flex items-center gap-4 mt-2">
+                        <span id="time-current" class="text-xs text-zinc-500 font-medium w-8 text-right">0:00</span>
+                        <input type="range" id="progress-bar" min="0" max="100" value="0" step="0.1" class="flex-1">
+                        <span id="time-total" class="text-xs text-zinc-500 font-medium w-8">0:00</span>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-8 mt-4">
+                        <button id="btn-prev" class="text-zinc-400 hover:text-white transition-colors">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+                        </button>
+                        <button id="btn-play-pause" class="w-16 h-16 flex items-center justify-center bg-white text-black rounded-full hover:scale-105 transition-transform">
+                            <svg id="icon-play" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" class="ml-1"><path d="M8 5v14l11-7z"/></svg>
+                            <svg id="icon-pause" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" class="hidden"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                        </button>
+                        <button id="btn-next" class="text-zinc-400 hover:text-white transition-colors">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full md:w-1/2 lg:w-3/5 flex flex-col h-[50vh] md:h-auto overflow-hidden">
+
+                <div class="flex items-center gap-6 border-b border-zinc-800 pb-4 mb-4 shrink-0">
+                    <button id="tab-tracks" class="text-lg font-medium text-white transition-colors">Tracks</button>
+                    <button id="tab-context" class="text-lg font-medium text-zinc-500 hover:text-zinc-300 transition-colors">Info</button>
+
+                    <div class="ml-auto text-right hidden sm:block">
+                        <p id="album-info-title" class="text-sm font-medium text-zinc-300">Album Name</p>
+                        <p id="album-info-year" class="text-xs text-zinc-500">—</p>
+                    </div>
+                </div>
+
+                <div id="panel-tracks" class="flex-1 overflow-y-auto pr-4">
+                    <ul id="track-list" class="flex flex-col gap-2"></ul>
+                </div>
+
+                <div id="panel-context" class="hidden flex-1 overflow-y-auto pr-4">
+                    <div class="prose prose-invert prose-zinc max-w-none">
+                        <p id="context-content" class="text-zinc-300 text-lg leading-relaxed whitespace-pre-line font-serif"></p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <script type="module">
+        import createPlayer from './player.js';
+
+        // --- helpers ---
+
+        function formatSecs(s) {
+            if (!Number.isFinite(s) || s < 0) return '0:00';
+            const m = Math.floor(s / 60);
+            const ss = Math.floor(s % 60);
+            return `${m}:${ss < 10 ? '0' : ''}${ss}`;
+        }
+
+        // --- DOM refs ---
+
+        const $ = id => document.getElementById(id);
+        const els = {
+            libraryView:    $('library-view'),
+            playerView:     $('player-view'),
+            albumGrid:      $('album-grid'),
+            ambientBg:      $('ambient-bg'),
+            backBtn:        $('back-btn'),
+            appTitle:       $('app-title'),
+            art:            $('now-playing-art'),
+            title:          $('now-playing-title'),
+            artist:         $('now-playing-artist'),
+            albumInfoTitle: $('album-info-title'),
+            albumInfoYear:  $('album-info-year'),
+            trackList:      $('track-list'),
+            panelTracks:    $('panel-tracks'),
+            panelContext:   $('panel-context'),
+            contextContent: $('context-content'),
+            btnPlayPause:   $('btn-play-pause'),
+            iconPlay:       $('icon-play'),
+            iconPause:      $('icon-pause'),
+            btnPrev:        $('btn-prev'),
+            btnNext:        $('btn-next'),
+            progressBar:    $('progress-bar'),
+            timeCurrent:    $('time-current'),
+            timeTotal:      $('time-total'),
+            tabTracks:      $('tab-tracks'),
+            tabContext:      $('tab-context'),
+        };
+
+        // --- state ---
+
+        let isScrubbing = false;
+
+        // --- UI helpers ---
+
+        function setPlayIcon(playing) {
+            els.iconPlay.classList.toggle('hidden', playing);
+            els.iconPause.classList.toggle('hidden', !playing);
+        }
+
+        function switchTab(name) {
+            const isTracks = name === 'tracks';
+            els.tabTracks.classList.toggle('text-white', isTracks);
+            els.tabTracks.classList.toggle('text-zinc-500', !isTracks);
+            els.tabContext.classList.toggle('text-white', !isTracks);
+            els.tabContext.classList.toggle('text-zinc-500', isTracks);
+            els.panelTracks.classList.toggle('hidden', !isTracks);
+            els.panelContext.classList.toggle('hidden', isTracks);
+        }
+
+        function showLibrary() {
+            els.playerView.classList.add('hidden');
+            els.playerView.classList.remove('flex');
+            els.libraryView.classList.remove('hidden');
+            els.backBtn.classList.add('hidden');
+            els.ambientBg.style.opacity = '0';
+        }
+
+        function showPlayerView(album) {
+            els.libraryView.classList.add('hidden');
+            els.playerView.classList.remove('hidden');
+            els.playerView.classList.add('flex');
+            els.backBtn.classList.remove('hidden');
+
+            els.art.src = album.cover || '';
+            els.albumInfoTitle.textContent = album.title;
+            els.albumInfoYear.textContent = album.year ?? '';
+            els.ambientBg.style.backgroundImage = album.cover ? `url('${album.cover}')` : '';
+            els.ambientBg.style.opacity = album.cover ? '0.4' : '0';
+
+            els.artist.textContent = album.artist;
+            els.contextContent.textContent = `${album.title}\n${album.artist} · ${album.year ?? ''}`;
+
+            switchTab('tracks');
+        }
+
+        function renderTracklist(album, activeIndex) {
+            els.trackList.innerHTML = album.tracks.map((track, i) => {
+                const nextStart = album.tracks[i + 1]?.start;
+                const durLabel = nextStart == null
+                    ? '--:--'
+                    : formatSecs(nextStart - track.start);
+                const isActive = i === activeIndex;
+                return `
+                    <li data-i="${i}" class="group flex items-center justify-between p-3 rounded-md cursor-pointer transition-colors ${isActive ? 'bg-white/10' : 'hover:bg-white/5'}">
+                        <div class="flex items-center gap-4">
+                            <span class="text-sm w-4 text-right ${isActive ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}">${i + 1}</span>
+                            <span class="text-base font-medium ${isActive ? 'text-white' : 'text-zinc-300 group-hover:text-white'}">${track.title}</span>
+                        </div>
+                        <span class="text-sm text-zinc-500">${durLabel}</span>
+                    </li>
+                `;
+            }).join('');
+
+            els.trackList.querySelectorAll('li[data-i]').forEach(li => {
+                li.addEventListener('click', () => {
+                    player.seekToTrack(Number(li.dataset.i));
+                    if (!player.isPlaying) player.play();
+                });
+            });
+        }
+
+        function renderLibrary(albums) {
+            els.albumGrid.innerHTML = albums.map(album => `
+                <div data-id="${album.id}" class="group cursor-pointer flex flex-col gap-3">
+                    <div class="w-full aspect-square overflow-hidden rounded-lg shadow-lg bg-zinc-900">
+                        <img src="${album.cover || ''}" alt="${album.title}"
+                             class="w-full h-full object-cover transition-all duration-500 group-hover:scale-105 group-hover:opacity-80"
+                             onerror="this.removeAttribute('src')">
+                    </div>
+                    <div>
+                        <h3 class="text-base font-medium text-zinc-100 truncate group-hover:text-white">${album.title}</h3>
+                        <p class="text-sm text-zinc-500 truncate">${album.artist}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            els.albumGrid.querySelectorAll('[data-id]').forEach(card => {
+                card.addEventListener('click', () => {
+                    const album = albums.find(a => a.id === card.dataset.id);
+                    if (!album) return;
+                    player.loadAlbum(album);
+                    player.play();
+                });
+            });
+        }
+
+        // --- boot ---
+
+        const albums = await fetch('albums.json').then(r => r.json());
+        const player = createPlayer(albums);
+
+        renderLibrary(albums);
+
+        if (player.currentAlbum) {
+            showPlayerView(player.currentAlbum);
+            renderTracklist(player.currentAlbum, player.currentTrackIndex);
+            els.title.textContent = player.currentAlbum.tracks[player.currentTrackIndex].title;
+            setPlayIcon(player.isPlaying);
+        }
+
+        // --- player events ---
+
+        player.on('albumloaded', ({ album }) => {
+            showPlayerView(album);
+        });
+
+        player.on('trackchange', ({ album, trackIndex, track }) => {
+            renderTracklist(album, trackIndex);
+            els.title.textContent = track.title;
+        });
+
+        player.on('play',  () => setPlayIcon(true));
+        player.on('pause', () => setPlayIcon(false));
+
+        player.on('timeupdate', ({ currentTime, duration }) => {
+            const album = player.currentAlbum;
+            if (!album) return;
+            const ti = player.currentTrackIndex;
+            const trackStart = album.tracks[ti].start;
+            const trackEnd = album.tracks[ti + 1]?.start ?? duration;
+            const trackDur = trackEnd - trackStart;
+            const trackPos = currentTime - trackStart;
+            const pct = trackDur > 0 ? (trackPos / trackDur) * 100 : 0;
+
+            els.timeCurrent.textContent = formatSecs(trackPos);
+            els.timeTotal.textContent = formatSecs(trackDur);
+            if (isScrubbing) return;
+            els.progressBar.value = pct;
+        });
+
+        // --- controls ---
+
+        els.btnPlayPause.addEventListener('click', () => {
+            if (!player.currentAlbum) return;
+            player.toggle();
+        });
+        els.btnPrev.addEventListener('click', () => player.prevTrack());
+        els.btnNext.addEventListener('click', () => player.nextTrack());
+        els.backBtn.addEventListener('click', showLibrary);
+        els.appTitle.addEventListener('click', showLibrary);
+        els.tabTracks.addEventListener('click', () => switchTab('tracks'));
+        els.tabContext.addEventListener('click', () => switchTab('context'));
+
+        // scrubber: seek on release to avoid flooding audio with seeks while dragging
+        els.progressBar.addEventListener('mousedown',  () => { isScrubbing = true; });
+        els.progressBar.addEventListener('touchstart', () => { isScrubbing = true; }, { passive: true });
+
+        function applySeek() {
+            isScrubbing = false;
+            const album = player.currentAlbum;
+            if (!album) return;
+            const ti = player.currentTrackIndex;
+            const trackStart = album.tracks[ti].start;
+            const trackEnd = album.tracks[ti + 1]?.start ?? player.duration;
+            const ratio = Number.parseFloat(els.progressBar.value) / 100;
+            player.seekToTime(trackStart + ratio * (trackEnd - trackStart));
+        }
+        els.progressBar.addEventListener('mouseup',  applySeek);
+        els.progressBar.addEventListener('touchend', applySeek);
+
+        // spacebar
+        document.addEventListener('keydown', e => {
+            if (e.code !== 'Space') return;
+            const tag = document.activeElement?.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
+            e.preventDefault();
+            if (!player.currentAlbum) return;
+            player.toggle();
+        });
+    </script>
+</body>
+</html>

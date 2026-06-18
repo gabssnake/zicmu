@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="../">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stream · zicmu</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root { --accent: #1ed760; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      background: #0a0a0a;
+      color: #fff;
+    }
+
+    /* Full-bleed blurred album art background */
+    #bg {
+      position: fixed;
+      inset: -30px;
+      background-size: cover;
+      background-position: center;
+      background-color: #111;
+      filter: blur(50px) saturate(1.6) brightness(0.45);
+      z-index: 0;
+      transition: background-image 1s ease;
+    }
+
+    /* Gradient overlay to anchor the bottom controls */
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.25) 0%,
+        rgba(0,0,0,0.1)  40%,
+        rgba(0,0,0,0.55) 75%,
+        rgba(0,0,0,0.75) 100%
+      );
+      z-index: 1;
+    }
+
+    /* Content layer */
+    #content {
+      position: relative;
+      z-index: 2;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top bar */
+    #topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      flex-shrink: 0;
+    }
+
+    #wordmark {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      opacity: 0.55;
+    }
+
+    #lib-btn {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: #fff;
+      border-radius: 20px;
+      padding: 7px 16px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: background 0.2s;
+    }
+
+    #lib-btn:hover { background: rgba(255,255,255,0.22); }
+
+    /* Player area */
+    #player-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 32px;
+      gap: 0;
+    }
+
+    /* Empty state */
+    #empty-state {
+      text-align: center;
+      opacity: 0.4;
+      font-size: 15px;
+    }
+
+    /* Player */
+    #player-main {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      width: 100%;
+    }
+
+    /* Album cover */
+    #cover {
+      width: min(260px, 58vw);
+      height: min(260px, 58vw);
+      object-fit: cover;
+      background: #222;
+      border-radius: 8px;
+      display: block;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.05);
+      transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.4s;
+    }
+
+    .is-playing #cover {
+      transform: scale(1.03);
+      box-shadow: 0 32px 80px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.05);
+    }
+
+    /* Track info */
+    #track-info {
+      text-align: center;
+      max-width: min(320px, 80vw);
+    }
+
+    #track-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 5px;
+      line-height: 1.2;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #track-artist {
+      font-size: 14px;
+      opacity: 0.6;
+      font-weight: 400;
+    }
+
+    /* Progress section */
+    #progress-section {
+      width: min(320px, 82vw);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    #progress-bar {
+      height: 4px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 2px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    #progress-fill {
+      position: absolute;
+      top: 0; left: 0;
+      height: 100%;
+      background: #fff;
+      border-radius: 2px;
+      pointer-events: none;
+      transition: width 0.1s linear;
+    }
+
+    #progress-handle {
+      position: absolute;
+      top: 50%;
+      width: 13px;
+      height: 13px;
+      background: #fff;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    #progress-bar:hover #progress-fill { background: var(--accent); }
+    #progress-bar:hover #progress-handle { opacity: 1; }
+
+    #progress-times {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      opacity: 0.45;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Controls */
+    #controls {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+
+    .ctrl-btn {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 0;
+      transition: color 0.15s, transform 0.1s;
+    }
+
+    .ctrl-btn:hover { color: #fff; }
+    .ctrl-btn:active { transform: scale(0.9); }
+    .ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .ctrl-btn:disabled:active { transform: none; }
+
+    #btn-play-pause {
+      width: 60px;
+      height: 60px;
+      background: #fff;
+      border: none;
+      border-radius: 50%;
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    #btn-play-pause:hover {
+      transform: scale(1.07);
+      box-shadow: 0 6px 28px rgba(0,0,0,0.5);
+    }
+
+    #btn-play-pause:active { transform: scale(0.95); }
+
+    /* Library slide-in panel */
+    #library {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: none;
+    }
+
+    #library.open { display: block; }
+
+    #lib-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    #lib-panel {
+      position: absolute;
+      top: 0; right: 0;
+      width: min(380px, 100vw);
+      height: 100%;
+      background: rgba(14,14,14,0.97);
+      overflow-y: auto;
+      padding: 24px 20px;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    #library.open #lib-panel { transform: translateX(0); }
+
+    #lib-panel::-webkit-scrollbar { width: 4px; }
+    #lib-panel::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+    #lib-close {
+      float: right;
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 24px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0;
+      margin-bottom: 4px;
+    }
+    #lib-close:hover { color: #fff; }
+
+    #lib-heading {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      clear: both;
+    }
+
+    .lib-album {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .lib-album:hover { background: rgba(255,255,255,0.07); }
+    .lib-album.active { background: rgba(255,255,255,0.1); }
+
+    .lib-album img {
+      width: 52px;
+      height: 52px;
+      object-fit: cover;
+      background: #222;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .lib-album-meta { overflow: hidden; }
+
+    .lib-album-title {
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .lib-album-sub {
+      font-size: 12px;
+      opacity: 0.55;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  </style>
+</head>
+<body>
+
+<div id="bg"></div>
+<div id="overlay"></div>
+
+<div id="content">
+  <div id="topbar">
+    <span id="wordmark">zicmu</span>
+    <button id="lib-btn">Library</button>
+  </div>
+
+  <div id="player-area">
+    <div id="empty-state">Open the Library to select an album</div>
+
+    <div id="player-main">
+      <img id="cover" src="" alt="cover" />
+
+      <div id="track-info">
+        <div id="track-title">—</div>
+        <div id="track-artist">—</div>
+      </div>
+
+      <div id="progress-section">
+        <div id="progress-bar">
+          <div id="progress-fill" style="width:0%"></div>
+          <div id="progress-handle" style="left:0%"></div>
+        </div>
+        <div id="progress-times">
+          <span id="time-cur">0:00</span>
+          <span id="time-tot">0:00</span>
+        </div>
+      </div>
+
+      <div id="controls">
+        <button class="ctrl-btn" id="btn-prev" disabled>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/>
+          </svg>
+        </button>
+        <button id="btn-play-pause">
+          <svg id="pp-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+        </button>
+        <button class="ctrl-btn" id="btn-next" disabled>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Library overlay -->
+<div id="library">
+  <div id="lib-backdrop"></div>
+  <div id="lib-panel">
+    <button id="lib-close">×</button>
+    <div id="lib-heading">Library</div>
+    <div id="lib-albums"></div>
+  </div>
+</div>
+
+<script type="module">
+  import createPlayer from './player.js';
+
+  function fmt(s) {
+    if (!Number.isFinite(s) || s < 0) return '0:00';
+    return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+  }
+
+  const albums = await fetch('albums.json').then(r => r.json());
+  const player = createPlayer(albums);
+
+  const bg          = document.getElementById('bg');
+  const coverImg    = document.getElementById('cover');
+  const trackTitle  = document.getElementById('track-title');
+  const trackArtist = document.getElementById('track-artist');
+  const timeCur     = document.getElementById('time-cur');
+  const timeTot     = document.getElementById('time-tot');
+  const progFill    = document.getElementById('progress-fill');
+  const progHandle  = document.getElementById('progress-handle');
+  const progBar     = document.getElementById('progress-bar');
+  const ppIcon      = document.getElementById('pp-icon');
+  const playerMain  = document.getElementById('player-main');
+  const emptyState  = document.getElementById('empty-state');
+  const libEl       = document.getElementById('library');
+  const libAlbums   = document.getElementById('lib-albums');
+  const btnPrev     = document.getElementById('btn-prev');
+  const btnNext     = document.getElementById('btn-next');
+
+  const PLAY_PATH  = '<path d="M8 5v14l11-7z"/>';
+  const PAUSE_PATH = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+
+  function showPlayer() {
+    emptyState.style.display = 'none';
+    playerMain.style.display = 'flex';
+  }
+
+  function updateNav() {
+    const a = player.currentAlbum;
+    btnPrev.disabled = !a || player.currentTrackIndex === 0;
+    btnNext.disabled = !a || player.currentTrackIndex >= a.tracks.length - 1;
+  }
+
+  function applyAlbum(album) {
+    bg.style.backgroundImage = `url('${album.cover}')`;
+    coverImg.src = album.cover || '';
+    showPlayer();
+    renderLibrary();
+    updateNav();
+  }
+
+  function applyTrack(track, artist) {
+    trackTitle.textContent  = track.title;
+    trackArtist.textContent = artist;
+  }
+
+  function setPlaying(on) {
+    ppIcon.innerHTML = on ? PAUSE_PATH : PLAY_PATH;
+    playerMain.classList.toggle('is-playing', on);
+  }
+
+  function renderLibrary() {
+    libAlbums.innerHTML = '';
+    albums.forEach(album => {
+      const row = document.createElement('div');
+      row.className = 'lib-album' + (player.currentAlbum?.id === album.id ? ' active' : '');
+      row.innerHTML = `
+        <img src="${album.cover || ''}" onerror="this.removeAttribute('src')" alt="" />
+        <div class="lib-album-meta">
+          <div class="lib-album-title">${album.title}</div>
+          <div class="lib-album-sub">${album.artist} · ${album.year ?? ''}</div>
+        </div>
+      `;
+      row.addEventListener('click', () => {
+        player.loadAlbum(album, 0);
+        player.play();
+        closeLibrary();
+      });
+      libAlbums.appendChild(row);
+    });
+  }
+
+  function openLibrary()  { renderLibrary(); libEl.classList.add('open'); }
+  function closeLibrary() { libEl.classList.remove('open'); }
+
+  // Player events
+  player.on('albumloaded', ({ album }) => applyAlbum(album));
+
+  player.on('trackchange', ({ album, track }) => {
+    applyTrack(track, album.artist);
+    updateNav();
+  });
+
+  player.on('play',  () => setPlaying(true));
+  player.on('pause', () => setPlaying(false));
+
+  player.on('timeupdate', ({ currentTime, duration }) => {
+    const a = player.currentAlbum;
+    if (!a) return;
+    const ti    = player.currentTrackIndex;
+    const start = a.tracks[ti].start;
+    const end   = a.tracks[ti + 1]?.start ?? duration;
+    const dur   = end - start;
+    const pos   = currentTime - start;
+    const pct   = dur > 0 ? (pos / dur) * 100 : 0;
+    timeCur.textContent = fmt(pos);
+    timeTot.textContent = fmt(dur);
+    progFill.style.width  = `${pct}%`;
+    progHandle.style.left = `${pct}%`;
+  });
+
+  // Seek
+  progBar.addEventListener('click', e => {
+    if (!player.currentAlbum) return;
+    const rect  = progBar.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const a     = player.currentAlbum;
+    const ti    = player.currentTrackIndex;
+    const start = a.tracks[ti].start;
+    const end   = a.tracks[ti + 1]?.start ?? player.duration;
+    player.seekToTime(start + ratio * (end - start));
+  });
+
+  // Controls
+  document.getElementById('btn-play-pause').addEventListener('click', () => {
+    if (!player.currentAlbum && albums.length) {
+      player.loadAlbum(albums[0], 0);
+      player.play();
+    } else {
+      player.toggle();
+    }
+  });
+
+  btnPrev.addEventListener('click', () => player.prevTrack());
+  btnNext.addEventListener('click', () => player.nextTrack());
+
+  document.getElementById('lib-btn').addEventListener('click', openLibrary);
+  document.getElementById('lib-close').addEventListener('click', closeLibrary);
+  document.getElementById('lib-backdrop').addEventListener('click', closeLibrary);
+
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Escape') { closeLibrary(); return; }
+    if (e.code !== 'Space') return;
+    const tag = document.activeElement?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
+    e.preventDefault();
+    player.toggle();
+  });
+
+  // Restore persisted state
+  if (player.currentAlbum) {
+    applyAlbum(player.currentAlbum);
+    applyTrack(
+      player.currentAlbum.tracks[player.currentTrackIndex],
+      player.currentAlbum.artist
+    );
+    setPlaying(player.isPlaying);
+  } else {
+    renderLibrary();
+  }
+</script>
+</body>
+</html>

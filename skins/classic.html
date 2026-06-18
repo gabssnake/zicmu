@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="../">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>zicmu</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #111;
+      --surface: #1a1a1a;
+      --surface2: #222;
+      --border: #333;
+      --accent: #6c8ebf;
+      --text: #e0e0e0;
+      --muted: #888;
+      --sidebar-w: 220px;
+    }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #app {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    #sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+    }
+
+    .album-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: background 0.1s;
+    }
+
+    .album-item:hover { background: var(--surface2); }
+
+    .album-item.active {
+      border-left-color: var(--accent);
+      background: var(--surface2);
+    }
+
+    .album-item img {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: #333;
+    }
+
+    .album-item-meta { overflow: hidden; }
+
+    .album-item-title {
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .album-item-artist {
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Player panel */
+    #player {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    #player-header {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    #cover {
+      width: 250px;
+      height: 250px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: #333;
+    }
+
+    #album-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-top: 4px;
+    }
+
+    #album-artist {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    #album-title {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    #album-year {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* Progress bar */
+    #progress-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    #progress-bar {
+      height: 4px;
+      background: var(--surface2);
+      border-radius: 2px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    #progress-bar:hover { height: 6px; margin-top: -1px; }
+
+    #progress-fill {
+      position: absolute;
+      top: 0; left: 0;
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      pointer-events: none;
+      transition: width 0.1s linear;
+    }
+
+    #progress-times {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Nav buttons */
+    #nav-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 7px 18px;
+      cursor: pointer;
+      font-size: 13px;
+      border-radius: 4px;
+    }
+
+    button:hover { background: var(--border); }
+    button:disabled { opacity: 0.3; cursor: default; }
+
+    /* Tracklist */
+    #tracklist { display: flex; flex-direction: column; }
+
+    .track-item {
+      padding: 9px 12px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      border-radius: 2px;
+      font-size: 14px;
+      color: var(--muted);
+      transition: background 0.1s;
+    }
+
+    .track-item:hover { background: var(--surface2); color: var(--text); }
+
+    .track-item.active {
+      border-left-color: var(--accent);
+      color: var(--text);
+      background: var(--surface2);
+    }
+
+    #empty-state {
+      color: var(--muted);
+      font-size: 14px;
+      margin: auto;
+    }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+      body { overflow: auto; }
+
+      #app { flex-direction: column; overflow: visible; }
+
+      #sidebar {
+        width: 100%;
+        max-height: 200px;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        overflow-x: auto;
+        overflow-y: hidden;
+        display: flex;
+        flex-direction: row;
+      }
+
+      .album-item {
+        flex-direction: column;
+        align-items: center;
+        min-width: 90px;
+        padding: 10px 8px;
+        border-left: none;
+        border-bottom: 3px solid transparent;
+        text-align: center;
+      }
+
+      .album-item.active {
+        border-left-color: transparent;
+        border-bottom-color: var(--accent);
+      }
+
+      #player { padding: 16px; }
+
+      #player-header { flex-direction: column; }
+
+      #cover { width: 100%; height: auto; max-width: 300px; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="sidebar"></div>
+  <div id="player">
+    <p id="empty-state">Select an album</p>
+  </div>
+</div>
+
+<script type="module">
+  import createPlayer from './player.js';
+
+  function fmt(s) {
+    if (!Number.isFinite(s) || s < 0) return '0:00';
+    return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+  }
+
+  const albums = await fetch('albums.json').then(r => r.json());
+  const player = createPlayer(albums);
+
+  const sidebar  = document.getElementById('sidebar');
+  const playerEl = document.getElementById('player');
+
+  const PLAY_LABEL  = 'Play';
+  const PAUSE_LABEL = 'Pause';
+
+  // --- render ---
+
+  function renderSidebar() {
+    sidebar.innerHTML = '';
+    for (const album of albums) {
+      const item = document.createElement('div');
+      item.className = 'album-item';
+      item.dataset.id = album.id;
+      item.innerHTML = `
+        <img src="${album.cover || ''}" onerror="this.removeAttribute('src')" alt="" />
+        <div class="album-item-meta">
+          <div class="album-item-title">${album.title}</div>
+          <div class="album-item-artist">${album.artist}</div>
+        </div>
+      `;
+      item.addEventListener('click', () => {
+        player.loadAlbum(album, 0);
+        player.play();
+      });
+      sidebar.appendChild(item);
+    }
+  }
+
+  function renderPlayerPanel(album) {
+    playerEl.innerHTML = `
+      <div id="player-header">
+        <img id="cover" src="${album.cover || ''}" onerror="this.style.background='#333'; this.removeAttribute('src')" alt="cover" />
+        <div id="album-meta">
+          <div id="album-artist">${album.artist}</div>
+          <div id="album-title">${album.title}</div>
+          <div id="album-year">${album.year || ''}</div>
+        </div>
+      </div>
+      <div id="progress-wrap">
+        <div id="progress-bar"><div id="progress-fill"></div></div>
+        <div id="progress-times">
+          <span id="time-cur">0:00</span>
+          <span id="time-tot">0:00</span>
+        </div>
+      </div>
+      <div id="nav-buttons">
+        <button id="btn-prev">Prev</button>
+        <button id="btn-play">${player.isPlaying ? PAUSE_LABEL : PLAY_LABEL}</button>
+        <button id="btn-next">Next</button>
+      </div>
+      <div id="tracklist"></div>
+    `;
+
+    document.getElementById('btn-prev').addEventListener('click', () => player.prevTrack());
+    document.getElementById('btn-next').addEventListener('click', () => player.nextTrack());
+    document.getElementById('btn-play').addEventListener('click', () => player.toggle());
+    document.getElementById('progress-bar').addEventListener('click', e => {
+      const rect  = e.currentTarget.getBoundingClientRect();
+      const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      const ti    = player.currentTrackIndex;
+      const start = album.tracks[ti].start;
+      const end   = album.tracks[ti + 1]?.start ?? player.duration;
+      player.seekToTime(start + ratio * (end - start));
+    });
+
+    renderTracklist();
+    updateNavButtons();
+  }
+
+  function renderTracklist() {
+    const list = document.getElementById('tracklist');
+    if (!list || !player.currentAlbum) return;
+    list.innerHTML = '';
+    player.currentAlbum.tracks.forEach((track, i) => {
+      const item = document.createElement('div');
+      item.className = 'track-item' + (i === player.currentTrackIndex ? ' active' : '');
+      item.textContent = track.title;
+      item.addEventListener('click', () => player.seekToTrack(i));
+      list.appendChild(item);
+    });
+  }
+
+  function highlightTrack(index) {
+    document.querySelectorAll('.track-item')
+      .forEach((el, i) => el.classList.toggle('active', i === index));
+  }
+
+  function highlightAlbum(id) {
+    document.querySelectorAll('.album-item')
+      .forEach(el => el.classList.toggle('active', el.dataset.id === id));
+  }
+
+  function updateNavButtons() {
+    const prev = document.getElementById('btn-prev');
+    const next = document.getElementById('btn-next');
+    if (!prev || !next || !player.currentAlbum) return;
+    prev.disabled = player.currentTrackIndex === 0;
+    next.disabled = player.currentTrackIndex === player.currentAlbum.tracks.length - 1;
+  }
+
+  function updatePlayButton(playing) {
+    const btn = document.getElementById('btn-play');
+    if (btn) btn.textContent = playing ? PAUSE_LABEL : PLAY_LABEL;
+  }
+
+  // --- player events ---
+
+  player.on('albumloaded', ({ album }) => {
+    renderPlayerPanel(album);
+    highlightAlbum(album.id);
+  });
+
+  player.on('trackchange', ({ trackIndex }) => {
+    highlightTrack(trackIndex);
+    updateNavButtons();
+  });
+
+  player.on('play',  () => updatePlayButton(true));
+  player.on('pause', () => updatePlayButton(false));
+
+  player.on('timeupdate', ({ currentTime, duration }) => {
+    const album = player.currentAlbum;
+    if (!album) return;
+    const ti    = player.currentTrackIndex;
+    const start = album.tracks[ti].start;
+    const end   = album.tracks[ti + 1]?.start ?? duration;
+    const dur   = end - start;
+    const pos   = currentTime - start;
+    const pct   = dur > 0 ? (pos / dur) * 100 : 0;
+
+    const fill = document.getElementById('progress-fill');
+    const cur  = document.getElementById('time-cur');
+    const tot  = document.getElementById('time-tot');
+    if (fill) fill.style.width = `${pct}%`;
+    if (cur)  cur.textContent  = fmt(pos);
+    if (tot)  tot.textContent  = fmt(dur);
+  });
+
+  // --- keyboard ---
+
+  document.addEventListener('keydown', e => {
+    if (e.code !== 'Space') return;
+    const tag = document.activeElement?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
+    e.preventDefault();
+    if (!player.currentAlbum) return;
+    player.toggle();
+  });
+
+  // --- init ---
+
+  renderSidebar();
+
+  if (player.currentAlbum) {
+    renderPlayerPanel(player.currentAlbum);
+    highlightAlbum(player.currentAlbum.id);
+    updatePlayButton(player.isPlaying);
+  }
+</script>
+</body>
+</html>

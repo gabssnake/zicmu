@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="../">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neo · zicmu</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #e0e5ec;
+      --text:    #31394d;
+      --muted:   #8896a4;
+      --accent:  #5b8dee;
+      --shadow-out: 6px 6px 14px #b8bec7, -6px -6px 14px #ffffff;
+      --shadow-in:  inset 4px 4px 10px #b8bec7, inset -4px -4px 10px #ffffff;
+    }
+
+    body {
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: var(--text);
+    }
+
+    /* ===================== Sidebar ===================== */
+    #sidebar {
+      width: 260px;
+      flex-shrink: 0;
+      padding: 28px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+    }
+
+    #sidebar::-webkit-scrollbar { width: 4px; }
+    #sidebar::-webkit-scrollbar-thumb { background: #c8ced7; border-radius: 2px; }
+
+    #sidebar-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0 6px;
+      margin-bottom: 4px;
+    }
+
+    .album-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: var(--shadow-out);
+      transition: box-shadow 0.18s;
+    }
+
+    .album-card:hover {
+      box-shadow: 4px 4px 10px #b8bec7, -4px -4px 10px #ffffff;
+    }
+
+    .album-card.active {
+      box-shadow: var(--shadow-in);
+    }
+
+    .album-card img {
+      width: 42px;
+      height: 42px;
+      border-radius: 9px;
+      object-fit: cover;
+      background: #c8ced7;
+      flex-shrink: 0;
+    }
+
+    .album-card-meta { overflow: hidden; }
+
+    .album-card-title {
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .album-card-artist {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ===================== Main player ===================== */
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 32px;
+      gap: 28px;
+    }
+
+    /* Circular cover with neumorphic frame */
+    #cover-frame {
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      box-shadow: var(--shadow-out);
+      padding: 12px;
+      background: var(--bg);
+      flex-shrink: 0;
+    }
+
+    #cover {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #c8ced7;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+
+    @keyframes spin-slow {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    .is-playing #cover {
+      animation: spin-slow 14s linear infinite;
+    }
+
+    /* Track info */
+    #track-info { text-align: center; }
+
+    #track-title {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.25;
+      max-width: 320px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #track-artist {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* Progress */
+    #progress-section {
+      width: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    #progress-outer {
+      height: 6px;
+      border-radius: 3px;
+      box-shadow: var(--shadow-in);
+      background: var(--bg);
+      cursor: pointer;
+      position: relative;
+    }
+
+    #progress-fill {
+      position: absolute;
+      top: 0; left: 0;
+      height: 100%;
+      border-radius: 3px;
+      background: var(--accent);
+      pointer-events: none;
+      transition: width 0.1s linear;
+    }
+
+    #progress-times {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Controls */
+    #controls {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .neo-btn {
+      border: none;
+      background: var(--bg);
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      box-shadow: var(--shadow-out);
+      transition: box-shadow 0.15s, color 0.15s;
+      padding: 0;
+    }
+
+    .neo-btn:hover { color: var(--text); }
+
+    .neo-btn:active {
+      box-shadow: var(--shadow-in);
+      color: var(--accent);
+    }
+
+    .neo-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .neo-btn:disabled:hover { color: var(--muted); }
+    .neo-btn:disabled:active { box-shadow: var(--shadow-out); color: var(--muted); }
+
+    .btn-md { width: 50px; height: 50px; }
+    .btn-lg { width: 66px; height: 66px; }
+
+    /* Tracklist */
+    #tracklist-section { width: 280px; }
+
+    #tracklist-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    #tracklist {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 180px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    #tracklist::-webkit-scrollbar { width: 4px; }
+    #tracklist::-webkit-scrollbar-thumb { background: #c8ced7; border-radius: 2px; }
+
+    .track-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--muted);
+      transition: box-shadow 0.15s, color 0.15s;
+    }
+
+    .track-item:hover {
+      box-shadow: 3px 3px 8px #b8bec7, -3px -3px 8px #ffffff;
+      color: var(--text);
+    }
+
+    .track-item.active {
+      box-shadow: var(--shadow-in);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .track-num {
+      min-width: 20px;
+      font-size: 10px;
+      color: #b8bec7;
+    }
+
+    .track-item.active .track-num { color: var(--accent); }
+
+    .track-dur {
+      margin-left: auto;
+      font-size: 10px;
+      color: #b8bec7;
+    }
+
+    .track-item.active .track-dur { color: var(--accent); }
+
+    #tracklist-empty {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      padding: 12px 0;
+    }
+
+    /* Mobile: sidebar becomes top strip */
+    @media (max-width: 640px) {
+      body { flex-direction: column; }
+
+      #sidebar {
+        width: 100%;
+        max-height: 140px;
+        padding: 12px 10px;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        gap: 8px;
+      }
+
+      #sidebar::-webkit-scrollbar { height: 0; }
+
+      #sidebar-label { display: none; }
+
+      .album-card {
+        min-width: 170px;
+        flex-shrink: 0;
+        padding: 8px 10px;
+      }
+
+      #main { padding: 20px 16px; gap: 20px; }
+      #cover-frame { width: 160px; height: 160px; }
+      #progress-section, #tracklist-section { width: 100%; max-width: 320px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Album list sidebar -->
+<div id="sidebar">
+  <div id="sidebar-label">Library</div>
+  <div id="album-list"></div>
+</div>
+
+<!-- Main player -->
+<div id="main">
+  <div id="cover-frame">
+    <img id="cover" src="" alt="cover" />
+  </div>
+
+  <div id="track-info">
+    <div id="track-title">Select an album</div>
+    <div id="track-artist">—</div>
+  </div>
+
+  <div id="progress-section">
+    <div id="progress-outer">
+      <div id="progress-fill" style="width:0%"></div>
+    </div>
+    <div id="progress-times">
+      <span id="time-cur">0:00</span>
+      <span id="time-tot">0:00</span>
+    </div>
+  </div>
+
+  <div id="controls">
+    <button class="neo-btn btn-md" id="btn-prev" disabled>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/>
+      </svg>
+    </button>
+    <button class="neo-btn btn-lg" id="btn-play">
+      <svg id="play-icon" width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8 5v14l11-7z"/>
+      </svg>
+    </button>
+    <button class="neo-btn btn-md" id="btn-next" disabled>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+      </svg>
+    </button>
+  </div>
+
+  <div id="tracklist-section">
+    <div id="tracklist-label">Tracklist</div>
+    <div id="tracklist">
+      <div id="tracklist-empty">No album loaded</div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import createPlayer from './player.js';
+
+  function fmt(s) {
+    if (!Number.isFinite(s) || s < 0) return '0:00';
+    return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+  }
+
+  const albums = await fetch('albums.json').then(r => r.json());
+  const player = createPlayer(albums);
+
+  const coverFrame    = document.getElementById('cover-frame');
+  const coverImg      = document.getElementById('cover');
+  const trackTitle    = document.getElementById('track-title');
+  const trackArtist   = document.getElementById('track-artist');
+  const timeCur       = document.getElementById('time-cur');
+  const timeTot       = document.getElementById('time-tot');
+  const progFill      = document.getElementById('progress-fill');
+  const progOuter     = document.getElementById('progress-outer');
+  const tracklist     = document.getElementById('tracklist');
+  const albumList     = document.getElementById('album-list');
+  const playIcon      = document.getElementById('play-icon');
+  const btnPrev       = document.getElementById('btn-prev');
+  const btnNext       = document.getElementById('btn-next');
+  const btnPlay       = document.getElementById('btn-play');
+
+  const PLAY_PATH  = '<path d="M8 5v14l11-7z"/>';
+  const PAUSE_PATH = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+
+  function updateNav() {
+    const a = player.currentAlbum;
+    btnPrev.disabled = !a || player.currentTrackIndex === 0;
+    btnNext.disabled = !a || player.currentTrackIndex >= a.tracks.length - 1;
+  }
+
+  function renderAlbums() {
+    albumList.innerHTML = '';
+    albums.forEach(album => {
+      const card = document.createElement('div');
+      card.className = 'album-card' + (player.currentAlbum?.id === album.id ? ' active' : '');
+      card.innerHTML = `
+        <img src="${album.cover || ''}" onerror="this.removeAttribute('src')" alt="" />
+        <div class="album-card-meta">
+          <div class="album-card-title">${album.title}</div>
+          <div class="album-card-artist">${album.artist}</div>
+        </div>
+      `;
+      card.addEventListener('click', () => {
+        player.loadAlbum(album, 0);
+        player.play();
+      });
+      albumList.appendChild(card);
+    });
+  }
+
+  function renderTracklist() {
+    tracklist.innerHTML = '';
+    const a = player.currentAlbum;
+    if (!a) {
+      tracklist.innerHTML = '<div id="tracklist-empty">No album loaded</div>';
+      return;
+    }
+    a.tracks.forEach((t, i) => {
+      const nextStart = a.tracks[i + 1]?.start;
+      const dur = nextStart != null ? fmt(nextStart - t.start) : '--:--';
+      const item = document.createElement('div');
+      item.className = 'track-item' + (i === player.currentTrackIndex ? ' active' : '');
+      item.innerHTML = `
+        <span class="track-num">${i + 1}</span>
+        <span>${t.title}</span>
+        <span class="track-dur">${dur}</span>
+      `;
+      item.addEventListener('click', () => player.seekToTrack(i));
+      tracklist.appendChild(item);
+    });
+  }
+
+  function setPlaying(on) {
+    playIcon.innerHTML = on ? PAUSE_PATH : PLAY_PATH;
+    coverFrame.classList.toggle('is-playing', on);
+  }
+
+  // Player events
+  player.on('albumloaded', ({ album }) => {
+    coverImg.src = album.cover || '';
+    renderAlbums();
+    renderTracklist();
+    updateNav();
+  });
+
+  player.on('trackchange', ({ album, track }) => {
+    trackTitle.textContent  = track.title;
+    trackArtist.textContent = album.artist;
+    renderTracklist();
+    updateNav();
+  });
+
+  player.on('play',  () => setPlaying(true));
+  player.on('pause', () => setPlaying(false));
+
+  player.on('timeupdate', ({ currentTime, duration }) => {
+    const a = player.currentAlbum;
+    if (!a) return;
+    const ti    = player.currentTrackIndex;
+    const start = a.tracks[ti].start;
+    const end   = a.tracks[ti + 1]?.start ?? duration;
+    const dur   = end - start;
+    const pos   = currentTime - start;
+    const pct   = dur > 0 ? (pos / dur) * 100 : 0;
+    timeCur.textContent = fmt(pos);
+    timeTot.textContent = fmt(dur);
+    progFill.style.width = `${pct}%`;
+  });
+
+  // Seek
+  progOuter.addEventListener('click', e => {
+    if (!player.currentAlbum) return;
+    const rect  = progOuter.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const a     = player.currentAlbum;
+    const ti    = player.currentTrackIndex;
+    const start = a.tracks[ti].start;
+    const end   = a.tracks[ti + 1]?.start ?? player.duration;
+    player.seekToTime(start + ratio * (end - start));
+  });
+
+  // Controls
+  btnPlay.addEventListener('click', () => {
+    if (!player.currentAlbum && albums.length) {
+      player.loadAlbum(albums[0], 0);
+      player.play();
+    } else {
+      player.toggle();
+    }
+  });
+
+  btnPrev.addEventListener('click', () => player.prevTrack());
+  btnNext.addEventListener('click', () => player.nextTrack());
+
+  // Spacebar
+  document.addEventListener('keydown', e => {
+    if (e.code !== 'Space') return;
+    const tag = document.activeElement?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
+    e.preventDefault();
+    player.toggle();
+  });
+
+  // Restore persisted state
+  renderAlbums();
+  renderTracklist();
+  if (player.currentAlbum) {
+    const a = player.currentAlbum;
+    coverImg.src = a.cover || '';
+    trackTitle.textContent  = a.tracks[player.currentTrackIndex].title;
+    trackArtist.textContent = a.artist;
+    setPlaying(player.isPlaying);
+    updateNav();
+  }
+</script>
+</body>
+</html>

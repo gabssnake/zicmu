@@ -7,452 +7,111 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    :root {
-      --bg: #111;
-      --surface: #1a1a1a;
-      --surface2: #222;
-      --border: #333;
-      --accent: #6c8ebf;
-      --text: #e0e0e0;
-      --muted: #888;
-      --sidebar-w: 220px;
-    }
-
     body {
       font-family: system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      height: 100vh;
+      background: #111;
+      color: #e0e0e0;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
-    }
-
-    #app {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
-
-    /* Sidebar */
-    #sidebar {
-      width: var(--sidebar-w);
-      flex-shrink: 0;
-      background: var(--surface);
-      border-right: 1px solid var(--border);
-      overflow-y: auto;
-    }
-
-    .album-item {
-      display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      cursor: pointer;
-      border-left: 3px solid transparent;
-      transition: background 0.1s;
+      justify-content: center;
+      padding: 40px 24px;
+      gap: 40px;
     }
 
-    .album-item:hover { background: var(--surface2); }
-
-    .album-item.active {
-      border-left-color: var(--accent);
-      background: var(--surface2);
-    }
-
-    .album-item img {
-      width: 48px;
-      height: 48px;
-      object-fit: cover;
-      flex-shrink: 0;
-      background: #333;
-    }
-
-    .album-item-meta { overflow: hidden; }
-
-    .album-item-title {
-      font-size: 13px;
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .album-item-artist {
-      font-size: 12px;
-      color: var(--muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* Player panel */
-    #player {
-      flex: 1;
-      overflow-y: auto;
-      padding: 32px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    #player-header {
-      display: flex;
-      gap: 24px;
-      align-items: flex-start;
-    }
-
-    #cover {
-      width: 250px;
-      height: 250px;
-      object-fit: cover;
-      flex-shrink: 0;
-      background: #333;
-    }
-
-    #album-meta {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      padding-top: 4px;
-    }
-
-    #album-artist {
-      font-size: 14px;
-      color: var(--muted);
-    }
-
-    #album-title {
-      font-size: 22px;
+    h1 {
+      font-size: 28px;
       font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #fff;
     }
 
-    #album-year {
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    audio {
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
       width: 100%;
-      accent-color: var(--accent);
+      max-width: 740px;
     }
 
-    #nav-buttons {
-      display: flex;
-      gap: 10px;
+    a {
+      display: block;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 20px 20px 16px;
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
     }
 
-    button {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 7px 18px;
-      cursor: pointer;
-      font-size: 13px;
-      border-radius: 4px;
+    a:hover {
+      background: #222;
+      border-color: #444;
+      transform: translateY(-2px);
     }
 
-    button:hover { background: var(--border); }
-    button:disabled { opacity: 0.3; cursor: default; }
-
-    #tracklist { display: flex; flex-direction: column; }
-
-    .track-item {
-      padding: 9px 12px;
-      cursor: pointer;
-      border-left: 3px solid transparent;
-      border-radius: 2px;
-      font-size: 14px;
-      color: var(--muted);
-      transition: background 0.1s;
+    .skin-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 6px;
     }
 
-    .track-item:hover { background: var(--surface2); color: var(--text); }
-
-    .track-item.active {
-      border-left-color: var(--accent);
-      color: var(--text);
-      background: var(--surface2);
+    .skin-desc {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.5;
     }
 
-    #empty-state {
-      color: var(--muted);
-      font-size: 14px;
-      margin: auto;
-    }
-
-    /* Mobile */
-    @media (max-width: 600px) {
-      body { overflow: auto; }
-
-      #app { flex-direction: column; overflow: visible; }
-
-      #sidebar {
-        width: 100%;
-        max-height: 200px;
-        border-right: none;
-        border-bottom: 1px solid var(--border);
-        overflow-x: auto;
-        overflow-y: hidden;
-        display: flex;
-        flex-direction: row;
-      }
-
-      .album-item {
-        flex-direction: column;
-        align-items: center;
-        min-width: 90px;
-        padding: 10px 8px;
-        border-left: none;
-        border-bottom: 3px solid transparent;
-        text-align: center;
-      }
-
-      .album-item.active {
-        border-left-color: transparent;
-        border-bottom-color: var(--accent);
-      }
-
-      #player { padding: 16px; }
-
-      #player-header { flex-direction: column; }
-
-      #cover { width: 100%; height: auto; max-width: 300px; }
+    footer {
+      font-size: 11px;
+      color: #444;
     }
   </style>
 </head>
 <body>
-<div id="app">
-  <div id="sidebar"></div>
-  <div id="player">
-    <p id="empty-state">Select an album</p>
-  </div>
+
+<h1>zicmu</h1>
+
+<div class="grid">
+  <a href="skins/classic.html">
+    <div class="skin-name">Classic</div>
+    <div class="skin-desc">Sidebar + tracklist. Plain dark layout.</div>
+  </a>
+  <a href="skins/groove.html">
+    <div class="skin-name">Groove</div>
+    <div class="skin-desc">Minimal single-column player.</div>
+  </a>
+  <a href="skins/liner.html">
+    <div class="skin-name">Liner</div>
+    <div class="skin-desc">Editorial paper-white with vinyl animation.</div>
+  </a>
+  <a href="skins/liner-notes.html">
+    <div class="skin-name">Liner Notes</div>
+    <div class="skin-desc">Liner with side-by-side notes panel.</div>
+  </a>
+  <a href="skins/aura.html">
+    <div class="skin-name">Aura</div>
+    <div class="skin-desc">Immersive dark with ambient blur and range scrubber.</div>
+  </a>
+  <a href="skins/winamp.html">
+    <div class="skin-name">Winamp</div>
+    <div class="skin-desc">Retro compact window, LED display, EQ bars.</div>
+  </a>
+  <a href="skins/stream.html">
+    <div class="skin-name">Stream</div>
+    <div class="skin-desc">Full-screen blurred album art background.</div>
+  </a>
+  <a href="skins/neo.html">
+    <div class="skin-name">Neo</div>
+    <div class="skin-desc">Neomorphic soft UI with rotating cover.</div>
+  </a>
 </div>
 
-<script type="module">
-  let albums = [];
-  let currentAlbum = null;
-  let currentTrackIndex = 0;
-  let lastSaveTime = 0;
+<footer>skins/ · player.js · albums.json · serve.js</footer>
 
-  const audio = new Audio();
-  const sidebar = document.getElementById('sidebar');
-  const player = document.getElementById('player');
-
-  // --- render ---
-
-  function renderSidebar() {
-    sidebar.innerHTML = '';
-    for (const album of albums) {
-      const item = document.createElement('div');
-      item.className = 'album-item';
-      item.dataset.id = album.id;
-      item.innerHTML = `
-        <img src="${album.cover || ''}" onerror="this.removeAttribute('src')" alt="" />
-        <div class="album-item-meta">
-          <div class="album-item-title">${album.title}</div>
-          <div class="album-item-artist">${album.artist}</div>
-        </div>
-      `;
-      item.addEventListener('click', () => loadAlbum(album, 0));
-      sidebar.appendChild(item);
-    }
-  }
-
-  function renderPlayer() {
-    const album = currentAlbum;
-    player.innerHTML = `
-      <div id="player-header">
-        <img id="cover" src="${album.cover || ''}" onerror="this.style.background='#333'; this.removeAttribute('src')" alt="cover" />
-        <div id="album-meta">
-          <div id="album-artist">${album.artist}</div>
-          <div id="album-title">${album.title}</div>
-          <div id="album-year">${album.year || ''}</div>
-        </div>
-      </div>
-      <audio id="audio-el" controls></audio>
-      <div id="nav-buttons">
-        <button id="btn-prev">Prev</button>
-        <button id="btn-next">Next</button>
-      </div>
-      <div id="tracklist"></div>
-    `;
-
-    // reattach audio element to keep same instance
-    const placeholder = player.querySelector('#audio-el');
-    placeholder.replaceWith(audio);
-    audio.controls = true;
-    audio.style.width = '100%';
-
-    document.getElementById('btn-prev').addEventListener('click', prevTrack);
-    document.getElementById('btn-next').addEventListener('click', nextTrack);
-
-    renderTracklist();
-    updateNavButtons();
-  }
-
-  function renderTracklist() {
-    const list = document.getElementById('tracklist');
-    if (!list) return;
-    list.innerHTML = '';
-    currentAlbum.tracks.forEach((track, i) => {
-      const item = document.createElement('div');
-      item.className = 'track-item' + (i === currentTrackIndex ? ' active' : '');
-      item.textContent = track.title;
-      item.addEventListener('click', () => seekToTrack(i));
-      list.appendChild(item);
-    });
-  }
-
-  function highlightTrack(index) {
-    const items = document.querySelectorAll('.track-item');
-    items.forEach((el, i) => el.classList.toggle('active', i === index));
-  }
-
-  function highlightAlbum(id) {
-    document.querySelectorAll('.album-item').forEach(el => {
-      el.classList.toggle('active', el.dataset.id === id);
-    });
-  }
-
-  function updateNavButtons() {
-    const prev = document.getElementById('btn-prev');
-    const next = document.getElementById('btn-next');
-    if (!prev || !next || !currentAlbum) return;
-    prev.disabled = currentTrackIndex === 0;
-    next.disabled = currentTrackIndex === currentAlbum.tracks.length - 1;
-  }
-
-  // --- playback ---
-
-  function applySeek(start) {
-    audio.currentTime = start;
-    audio.play().catch(() => {});
-  }
-
-  function seekWhenReady(start) {
-    if (audio.readyState >= 1) {
-      applySeek(start);
-    } else {
-      audio.addEventListener('loadedmetadata', () => applySeek(start), { once: true });
-    }
-  }
-
-  function loadAlbum(album, trackIndex) {
-    currentAlbum = album;
-    currentTrackIndex = trackIndex;
-    audio.src = album.audio;
-    renderPlayer();
-    highlightAlbum(album.id);
-    updateMediaSession();
-    saveState();
-    const start = album.tracks[trackIndex].start;
-    if (start > 0) seekWhenReady(start);
-  }
-
-  function seekToTrack(index) {
-    currentTrackIndex = index;
-    const start = currentAlbum.tracks[index].start;
-    seekWhenReady(start);
-    updateMediaSession();
-    saveState();
-    highlightTrack(index);
-    updateNavButtons();
-  }
-
-  function prevTrack() {
-    if (!currentAlbum || currentTrackIndex === 0) return;
-    seekToTrack(currentTrackIndex - 1);
-  }
-
-  function nextTrack() {
-    if (!currentAlbum || currentTrackIndex >= currentAlbum.tracks.length - 1) return;
-    seekToTrack(currentTrackIndex + 1);
-  }
-
-  // --- auto-advance + save throttle ---
-
-  audio.addEventListener('timeupdate', () => {
-    if (!currentAlbum) return;
-
-    const next = currentAlbum.tracks[currentTrackIndex + 1];
-    if (next && audio.currentTime >= next.start) {
-      currentTrackIndex++;
-      updateMediaSession();
-      saveState();
-      highlightTrack(currentTrackIndex);
-      updateNavButtons();
-    }
-
-    if (Date.now() - lastSaveTime > 5000) {
-      saveState();
-      lastSaveTime = Date.now();
-    }
-  });
-
-  // --- media session ---
-
-  function updateMediaSession() {
-    if (!('mediaSession' in navigator) || !currentAlbum) return;
-    const track = currentAlbum.tracks[currentTrackIndex];
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: track.title,
-      artist: currentAlbum.artist,
-      album: currentAlbum.title,
-      artwork: currentAlbum.cover
-        ? [{ src: currentAlbum.cover, sizes: '512x512', type: 'image/jpeg' }]
-        : []
-    });
-    navigator.mediaSession.setActionHandler('play', () => audio.play().catch(() => {}));
-    navigator.mediaSession.setActionHandler('pause', () => audio.pause());
-    navigator.mediaSession.setActionHandler('previoustrack', prevTrack);
-    navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
-  }
-
-  // --- state persistence ---
-
-  function saveState() {
-    if (!currentAlbum) return;
-    localStorage.setItem('zicmu-state', JSON.stringify({
-      albumId: currentAlbum.id,
-      trackIndex: currentTrackIndex,
-      position: audio.currentTime
-    }));
-  }
-
-  function restoreState() {
-    const s = JSON.parse(localStorage.getItem('zicmu-state') || 'null');
-    if (!s) return;
-    const album = albums.find(a => a.id === s.albumId);
-    if (!album) return;
-    currentAlbum = album;
-    currentTrackIndex = s.trackIndex || 0;
-    audio.src = album.audio;
-    renderPlayer();
-    highlightAlbum(album.id);
-    audio.addEventListener('loadedmetadata', () => {
-      audio.currentTime = s.position || album.tracks[currentTrackIndex].start;
-    }, { once: true });
-    updateMediaSession();
-  }
-
-  // --- keyboard ---
-
-  document.addEventListener('keydown', e => {
-    if (e.code !== 'Space') return;
-    const tag = document.activeElement?.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
-    e.preventDefault();
-    if (!currentAlbum) return;
-    audio.paused ? audio.play().catch(() => {}) : audio.pause();
-  });
-
-  // --- init ---
-
-  const data = await fetch('albums.json').then(r => r.json());
-  albums = data;
-  renderSidebar();
-  restoreState();
-</script>
 </body>
 </html>
