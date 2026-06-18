@@ -4,7 +4,7 @@
   <base href="../">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liner | Personal Audio Library</title>
+    <title>Liner · zicmu</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -146,17 +146,11 @@
                     <h3 id="album-artist" class="font-sans text-lg md:text-xl text-inkLight font-medium">Artist Name</h3>
                     <div class="flex items-center gap-4 mt-4 text-xs font-sans text-inkLight uppercase tracking-wider">
                         <span id="album-year">—</span>
-                        <span>&bull;</span>
-                        <button id="liner-notes-btn" class="hover:text-ink border-b border-transparent hover:border-ink transition-colors pb-0.5">Liner Notes</button>
                     </div>
                 </div>
 
                 <div id="tracklist-container" class="flex-1 overflow-y-auto pr-4 font-sans relative">
                     <ul id="tracklist" class="space-y-1"></ul>
-
-                    <div id="liner-notes" class="hidden absolute inset-0 bg-paper/95 backdrop-blur-sm overflow-y-auto p-4 border border-gray-200 text-sm leading-relaxed text-inkLight font-serif">
-                        <em>No liner notes available for this album.</em>
-                    </div>
                 </div>
 
                 <div class="mt-8 pt-6 border-t border-gray-200">
@@ -231,9 +225,6 @@
             albumArtist:        $('album-artist'),
             albumYear:          $('album-year'),
             tracklist:          $('tracklist'),
-            linerNotes:         $('liner-notes'),
-            linerNotesBtn:      $('liner-notes-btn'),
-
             nowPlayingTitle:    $('now-playing-title'),
             nowPlayingArtist:   $('now-playing-artist'),
             mainPlayIcon:       $('main-play-icon'),
@@ -259,7 +250,6 @@
 
         let currentView = 'library';
         let viewingAlbum = null;
-        let showingLinerNotes = false;
 
         const ICON_PLAY  = '<path d="M8 5v14l11-7z"/>';
         const ICON_PAUSE = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
@@ -342,16 +332,12 @@
         function openAlbum(album, albumIndex) {
             viewingAlbum = album;
             currentView = 'album';
-            showingLinerNotes = false;
 
             els.albumCover.src = album.cover || '';
             els.albumTitle.textContent = album.title;
             els.albumArtist.textContent = album.artist;
             els.albumYear.textContent = album.year ?? '—';
             els.vinyl.style.setProperty('--album-color', VINYL_COLORS[albumIndex % VINYL_COLORS.length]);
-            els.linerNotes.classList.add('hidden');
-            els.tracklist.classList.remove('hidden');
-            els.linerNotesBtn.textContent = 'Liner Notes';
 
             renderTracklist();
 
@@ -422,19 +408,6 @@
             const track = player.currentAlbum.tracks[player.currentTrackIndex];
             els.nowPlayingTitle.textContent = track.title;
             els.nowPlayingArtist.textContent = player.currentAlbum.artist;
-        }
-
-        function toggleLinerNotes() {
-            showingLinerNotes = !showingLinerNotes;
-            if (showingLinerNotes) {
-                els.linerNotes.classList.remove('hidden');
-                els.tracklist.classList.add('hidden');
-                els.linerNotesBtn.textContent = 'Tracklist';
-            } else {
-                els.linerNotes.classList.add('hidden');
-                els.tracklist.classList.remove('hidden');
-                els.linerNotesBtn.textContent = 'Liner Notes';
-            }
         }
 
         function renderLibrary(albums) {
@@ -512,7 +485,6 @@
 
         els.appTitle.addEventListener('click', showLibrary);
         els.backBtn.addEventListener('click', showLibrary);
-        els.linerNotesBtn.addEventListener('click', toggleLinerNotes);
 
         els.coverContainer.addEventListener('click', () => {
             if (!viewingAlbum) return;

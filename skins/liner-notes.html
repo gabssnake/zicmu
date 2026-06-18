@@ -4,7 +4,7 @@
   <base href="../">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liner Notes</title>
+    <title>Liner Notes · zicmu</title>
     <style>
         :root {
             --bg-color: #f4f4f0;
@@ -125,26 +125,6 @@
         .album-meta { margin-bottom: 2.5rem; }
         .album-year-genre { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem; font-family: monospace; }
 
-        .tabs { display: flex; gap: 2rem; border-bottom: 1px solid var(--border-color); margin-bottom: 2rem; }
-        .tab-btn {
-            padding-bottom: 0.5rem; font-size: 0.85rem;
-            text-transform: uppercase; letter-spacing: 0.1em;
-            color: var(--text-muted); position: relative;
-        }
-        .tab-btn.active { color: var(--text-main); }
-        .tab-btn.active::after {
-            content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
-            height: 2px; background-color: var(--text-main);
-        }
-
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         .tracklist { list-style: none; }
         .track-item {
             display: flex; align-items: center;
@@ -163,10 +143,6 @@
             width: 4px; height: 4px; border-radius: 50%;
             background-color: var(--accent-color);
         }
-
-        .liner-notes { font-family: var(--font-serif); font-size: 1.05rem; line-height: 1.7; color: #333; }
-        .liner-notes p { margin-bottom: 1rem; }
-        .liner-notes .no-notes { font-style: italic; color: var(--text-muted); }
 
         .player-controls-wrapper {
             margin-top: auto; padding-top: 2rem;
@@ -249,20 +225,7 @@
                         <div id="pv-year" class="album-year-genre">—</div>
                     </header>
 
-                    <nav class="tabs" aria-label="Content tabs">
-                        <button class="tab-btn active" id="tab-btn-tracks">Tracklist</button>
-                        <button class="tab-btn" id="tab-btn-notes">Liner Notes</button>
-                    </nav>
-
-                    <div id="tab-tracks" class="tab-content active">
-                        <ul class="tracklist" id="pv-tracklist"></ul>
-                    </div>
-
-                    <div id="tab-notes" class="tab-content">
-                        <div class="liner-notes" id="pv-notes">
-                            <p class="no-notes">No liner notes available for this album.</p>
-                        </div>
-                    </div>
+                    <ul class="tracklist" id="pv-tracklist"></ul>
 
                     <div class="player-controls-wrapper">
                         <div class="now-playing-label" id="pv-now-playing">Select a track to begin</div>
@@ -310,7 +273,6 @@
             pvArtist:     $('pv-artist'),
             pvYear:       $('pv-year'),
             pvTracklist:  $('pv-tracklist'),
-            pvNotes:      $('pv-notes'),
             pvNowPlaying: $('pv-now-playing'),
 
             timeCurrent:  $('pv-time-current'),
@@ -320,11 +282,6 @@
 
             iconPlay:     $('icon-play'),
             iconPause:    $('icon-pause'),
-
-            tabBtnTracks: $('tab-btn-tracks'),
-            tabBtnNotes:  $('tab-btn-notes'),
-            tabTracks:    $('tab-tracks'),
-            tabNotes:     $('tab-notes'),
 
             btnPrev:      $('btn-prev'),
             btnPlayPause: $('btn-play-pause'),
@@ -340,14 +297,6 @@
         function setPlayIcon(playing) {
             els.iconPlay.style.display = playing ? 'none' : 'block';
             els.iconPause.style.display = playing ? 'block' : 'none';
-        }
-
-        function switchTab(name) {
-            const isTracks = name === 'tracks';
-            els.tabBtnTracks.classList.toggle('active', isTracks);
-            els.tabBtnNotes.classList.toggle('active', !isTracks);
-            els.tabTracks.classList.toggle('active', isTracks);
-            els.tabNotes.classList.toggle('active', !isTracks);
         }
 
         function showLibrary() {
@@ -366,7 +315,6 @@
             els.pvYear.textContent = album.year ?? '—';
 
             renderTracklist();
-            switchTab('tracks');
             setPlayIcon(false);
             els.pvNowPlaying.textContent = 'Select a track to begin';
             els.timeCurrent.textContent = '0:00';
@@ -466,8 +414,6 @@
         // --- controls ---
 
         els.btnBack.addEventListener('click', showLibrary);
-        els.tabBtnTracks.addEventListener('click', () => switchTab('tracks'));
-        els.tabBtnNotes.addEventListener('click', () => switchTab('notes'));
         els.progressBar.addEventListener('click', e => seekFromClick(e, els.progressBar, player));
 
         els.btnPlayPause.addEventListener('click', () => {

@@ -4,7 +4,7 @@
   <base href="../">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Groove</title>
+  <title>Groove · zicmu</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
 
@@ -160,18 +160,6 @@
     .album-header h1 { font-size: clamp(2.5rem, 5vw, 4.5rem); line-height: 1.1; margin-bottom: 0.5rem; }
     .album-header .artist { font-size: 1.25rem; color: var(--text-muted); }
 
-    .info-toggle { display: flex; gap: 1rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; }
-    .toggle-btn {
-      padding: 0.5rem 0; font-size: 0.85rem;
-      text-transform: uppercase; letter-spacing: 0.1em;
-      color: var(--text-muted); position: relative;
-    }
-    .toggle-btn.active { color: var(--text-primary); }
-    .toggle-btn.active::after {
-      content: ''; position: absolute; bottom: -1px; left: 0;
-      width: 100%; height: 1px; background: var(--text-primary);
-    }
-
     .tab-content { flex: 1; overflow-y: auto; scrollbar-width: none; }
     .tab-content::-webkit-scrollbar { display: none; }
 
@@ -248,14 +236,7 @@
           <h1 id="player-title" class="serif"></h1>
           <p id="player-artist" class="artist"></p>
         </header>
-        <div class="info-toggle">
-          <button id="tab-tracks" class="toggle-btn active">Tracks</button>
-          <button id="tab-notes" class="toggle-btn">Notes</button>
-        </div>
         <div id="content-tracks" class="tab-content"></div>
-        <div id="content-notes" class="tab-content hidden" style="font-size:1.05rem;line-height:1.8;color:var(--text-secondary);padding-right:1rem">
-          <p id="notes-text"><em>No notes available for this album.</em></p>
-        </div>
       </div>
     </div>
   </main>
@@ -281,11 +262,7 @@
     meta:         $('player-meta'),
     title:        $('player-title'),
     artist:       $('player-artist'),
-    tabTracks:    $('tab-tracks'),
-    tabNotes:     $('tab-notes'),
     contentTracks:$('content-tracks'),
-    contentNotes: $('content-notes'),
-    notesText:    $('notes-text'),
     btnPlayPause: $('btn-play-pause'),
     btnPrev:      $('btn-prev'),
     btnNext:      $('btn-next'),
@@ -297,22 +274,12 @@
 
   // --- helpers ---
 
-  function switchTab(name) {
-    const isTrack = name === 'tracks';
-    el.tabTracks.classList.toggle('active', isTrack);
-    el.tabNotes.classList.toggle('active', !isTrack);
-    el.contentTracks.classList.toggle('hidden', !isTrack);
-    el.contentNotes.classList.toggle('hidden', isTrack);
-  }
-
   function showPlayerView(album) {
     el.cover.src = album.cover || '';
     el.cover.alt = album.title;
     el.meta.textContent = album.year ?? '';
     el.title.textContent = album.title;
     el.artist.textContent = album.artist;
-    el.notesText.innerHTML = '<em>No notes available for this album.</em>';
-    switchTab('tracks');
     el.header.classList.add('hidden');
     el.viewLibrary.classList.add('hidden');
     el.viewPlayer.classList.remove('hidden');
@@ -412,9 +379,6 @@
   el.btnPlayPause.addEventListener('click', () => player.toggle());
   el.btnPrev.addEventListener('click', () => player.prevTrack());
   el.btnNext.addEventListener('click', () => player.nextTrack());
-
-  el.tabTracks.addEventListener('click', () => switchTab('tracks'));
-  el.tabNotes.addEventListener('click', () => switchTab('notes'));
 
   el.progressHit.addEventListener('click', e => seekFromClick(e, el.progressHit, player));
 
