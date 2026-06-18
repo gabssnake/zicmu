@@ -6,9 +6,12 @@
 //
 // Contract:
 //   State (read-only getters): albums, currentAlbum, currentTrackIndex,
-//                               isPlaying, currentTime, duration
-//   Commands: loadAlbum, seekToTrack, play, pause, toggle, prevTrack, nextTrack
-//   Events: on/off — 'albumloaded', 'trackchange', 'play', 'pause', 'timeupdate'
+//                               isPlaying, currentTime, duration, volume
+//   Commands: loadAlbum, seekToTrack, seekToTime, play, pause, toggle,
+//             prevTrack, nextTrack
+//             volume = 0..1 (settable)
+//   Events: on/off — 'albumloaded', 'trackchange', 'play', 'pause',
+//                    'timeupdate', 'volumechange', 'albumended'
 
 export default function createPlayer(albums) {
   const _audio = new Audio();
@@ -86,6 +89,8 @@ export default function createPlayer(albums) {
 
   _audio.addEventListener('play',  () => emit('play'));
   _audio.addEventListener('pause', () => emit('pause'));
+  _audio.addEventListener('ended', () => emit('albumended', { album: _currentAlbum }));
+  _audio.addEventListener('volumechange', () => emit('volumechange', { volume: _audio.volume }));
 
   _audio.addEventListener('timeupdate', () => {
     if (!_currentAlbum) return;
@@ -198,6 +203,8 @@ export default function createPlayer(albums) {
     get isPlaying()         { return !_audio.paused; },
     get currentTime()       { return _audio.currentTime; },
     get duration()          { return _audio.duration || 0; },
+    get volume()            { return _audio.volume; },
+    set volume(v)           { _audio.volume = Math.max(0, Math.min(1, v)); },
     loadAlbum,
     seekToTrack,
     seekToTime,

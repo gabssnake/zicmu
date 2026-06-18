@@ -263,15 +263,9 @@
 </div>
 
 <script type="module">
-  import createPlayer from './player.js';
+  import { initPlayer, formatTime, trackProgress, seekFromClick, setupKeyboard } from './skin.js';
 
-  function fmt(s) {
-    if (!Number.isFinite(s) || s < 0) return '0:00';
-    return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
-  }
-
-  const albums = await fetch('albums.json').then(r => r.json());
-  const player = createPlayer(albums);
+  const { player, albums } = await initPlayer();
 
   const sidebar  = document.getElementById('sidebar');
   const playerEl = document.getElementById('player');
@@ -331,12 +325,7 @@
     document.getElementById('btn-next').addEventListener('click', () => player.nextTrack());
     document.getElementById('btn-play').addEventListener('click', () => player.toggle());
     document.getElementById('progress-bar').addEventListener('click', e => {
-      const rect  = e.currentTarget.getBoundingClientRect();
-      const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-      const ti    = player.currentTrackIndex;
-      const start = album.tracks[ti].start;
-      const end   = album.tracks[ti + 1]?.start ?? player.duration;
-      player.seekToTime(start + ratio * (end - start));
+      seekFromClick(e, e.currentTarget, player);
     });
 
     renderTracklist();
@@ -394,34 +383,20 @@
   player.on('play',  () => updatePlayButton(true));
   player.on('pause', () => updatePlayButton(false));
 
-  player.on('timeupdate', ({ currentTime, duration }) => {
-    const album = player.currentAlbum;
-    if (!album) return;
-    const ti    = player.currentTrackIndex;
-    const start = album.tracks[ti].start;
-    const end   = album.tracks[ti + 1]?.start ?? duration;
-    const dur   = end - start;
-    const pos   = currentTime - start;
-    const pct   = dur > 0 ? (pos / dur) * 100 : 0;
-
+  player.on('timeupdate', () => {
+    if (!player.currentAlbum) return;
+    const { trackPos, trackDur, pct } = trackProgress(player);
     const fill = document.getElementById('progress-fill');
     const cur  = document.getElementById('time-cur');
     const tot  = document.getElementById('time-tot');
     if (fill) fill.style.width = `${pct}%`;
-    if (cur)  cur.textContent  = fmt(pos);
-    if (tot)  tot.textContent  = fmt(dur);
+    if (cur)  cur.textContent  = formatTime(trackPos);
+    if (tot)  tot.textContent  = formatTime(trackDur);
   });
 
   // --- keyboard ---
 
-  document.addEventListener('keydown', e => {
-    if (e.code !== 'Space') return;
-    const tag = document.activeElement?.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
-    e.preventDefault();
-    if (!player.currentAlbum) return;
-    player.toggle();
-  });
+  setupKeyboard(player);
 
   // --- init ---
 

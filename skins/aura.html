@@ -122,16 +122,7 @@
     </main>
 
     <script type="module">
-        import createPlayer from './player.js';
-
-        // --- helpers ---
-
-        function formatSecs(s) {
-            if (!Number.isFinite(s) || s < 0) return '0:00';
-            const m = Math.floor(s / 60);
-            const ss = Math.floor(s % 60);
-            return `${m}:${ss < 10 ? '0' : ''}${ss}`;
-        }
+        import { initPlayer, formatTime, trackProgress, seekFromClick, setupKeyboard } from './skin.js';
 
         // --- DOM refs ---
 
@@ -216,7 +207,7 @@
                 const nextStart = album.tracks[i + 1]?.start;
                 const durLabel = nextStart == null
                     ? '--:--'
-                    : formatSecs(nextStart - track.start);
+                    : formatTime(nextStart - track.start);
                 const isActive = i === activeIndex;
                 return `
                     <li data-i="${i}" class="group flex items-center justify-between p-3 rounded-md cursor-pointer transition-colors ${isActive ? 'bg-white/10' : 'hover:bg-white/5'}">
@@ -264,8 +255,7 @@
 
         // --- boot ---
 
-        const albums = await fetch('albums.json').then(r => r.json());
-        const player = createPlayer(albums);
+        const { player, albums } = await initPlayer();
 
         renderLibrary(albums);
 
@@ -290,18 +280,11 @@
         player.on('play',  () => setPlayIcon(true));
         player.on('pause', () => setPlayIcon(false));
 
-        player.on('timeupdate', ({ currentTime, duration }) => {
-            const album = player.currentAlbum;
-            if (!album) return;
-            const ti = player.currentTrackIndex;
-            const trackStart = album.tracks[ti].start;
-            const trackEnd = album.tracks[ti + 1]?.start ?? duration;
-            const trackDur = trackEnd - trackStart;
-            const trackPos = currentTime - trackStart;
-            const pct = trackDur > 0 ? (trackPos / trackDur) * 100 : 0;
-
-            els.timeCurrent.textContent = formatSecs(trackPos);
-            els.timeTotal.textContent = formatSecs(trackDur);
+        player.on('timeupdate', () => {
+            if (!player.currentAlbum) return;
+            const { trackPos, trackDur, pct } = trackProgress(player);
+            els.timeCurrent.textContent = formatTime(trackPos);
+            els.timeTotal.textContent = formatTime(trackDur);
             if (isScrubbing) return;
             els.progressBar.value = pct;
         });
@@ -325,26 +308,12 @@
 
         function applySeek() {
             isScrubbing = false;
-            const album = player.currentAlbum;
-            if (!album) return;
-            const ti = player.currentTrackIndex;
-            const trackStart = album.tracks[ti].start;
-            const trackEnd = album.tracks[ti + 1]?.start ?? player.duration;
-            const ratio = Number.parseFloat(els.progressBar.value) / 100;
-            player.seekToTime(trackStart + ratio * (trackEnd - trackStart));
+            seekFromClick({ type: 'input' }, els.progressBar, player);
         }
         els.progressBar.addEventListener('mouseup',  applySeek);
         els.progressBar.addEventListener('touchend', applySeek);
 
-        // spacebar
-        document.addEventListener('keydown', e => {
-            if (e.code !== 'Space') return;
-            const tag = document.activeElement?.tagName;
-            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
-            e.preventDefault();
-            if (!player.currentAlbum) return;
-            player.toggle();
-        });
+        setupKeyboard(player);
     </script>
 </body>
 </html>
