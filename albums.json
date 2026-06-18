@@ -1,5 +1,64 @@
 [
   {
+    "id": "arctic-monkeys_am",
+    "title": "AM",
+    "artist": "Arctic Monkeys",
+    "year": 2013,
+    "audio": "media/Arctic Monkeys - AM (2013).mp3",
+    "tracks": [
+      {
+        "title": "Do I Wanna Know?",
+        "start": 0
+      },
+      {
+        "title": "R U Mine?",
+        "start": 272
+      },
+      {
+        "title": "One for the Road",
+        "start": 473
+      },
+      {
+        "title": "Arabella",
+        "start": 679
+      },
+      {
+        "title": "I Want It All",
+        "start": 886
+      },
+      {
+        "title": "No.1 Party Anthem",
+        "start": 1070
+      },
+      {
+        "title": "Mad Sounds",
+        "start": 1313
+      },
+      {
+        "title": "Fireside",
+        "start": 1528
+      },
+      {
+        "title": "Why’d You Only Call Me When You’re High?",
+        "start": 1709
+      },
+      {
+        "title": "Snap Out of It",
+        "start": 1870
+      },
+      {
+        "title": "Knee Socks",
+        "start": 2062
+      },
+      {
+        "title": "I Wanna Be Yours",
+        "start": 2319
+      }
+    ],
+    "cover": "media/arctic-monkeys_am.jpg",
+    "_review": true
+  },
+  {
     "id": "bob-marley-and-the-wailers_legend",
     "title": "Legend",
     "artist": "Bob Marley & The Wailers",
@@ -7,48 +66,48 @@
     "audio": "media/Bob Marley & The Wailers - Legend (1984).mp3",
     "tracks": [
       {
-        "title": "Is This Love?",
+        "title": "Is This Love",
         "start": 0
       },
       {
-        "title": "No Woman, No Cry (live)",
+        "title": "No Woman No Cry",
         "start": 226.427029
       },
       {
         "title": "Could You Be Loved",
-        "start": 479.959
+        "start": 480
       },
       {
         "title": "Three Little Birds",
-        "start": 694.692
+        "start": 695
       },
       {
         "title": "Buffalo Soldier",
-        "start": 874.398
+        "start": 875
       },
       {
-        "title": "Get Up, Stand Up",
-        "start": 1038.598
+        "title": "Get Up Stand Up",
+        "start": 1039
       },
       {
         "title": "Stir It Up",
-        "start": 1232.398
+        "start": 1234
       },
       {
         "title": "One Love / People Get Ready",
-        "start": 1450.8909999999998
+        "start": 1454
       },
       {
-        "title": "I Shot the Sheriff",
-        "start": 1621.8639999999998
+        "title": "I Shot The Sheriff",
+        "start": 1627
       },
       {
-        "title": "Waiting in Vain",
-        "start": 1849.7299999999998
+        "title": "Waiting In Vain",
+        "start": 1856
       },
       {
         "title": "Redemption Song",
-        "start": 2097.5559999999996
+        "start": 2106
       },
       {
         "title": "Satisfy My Soul",
@@ -56,11 +115,11 @@
       },
       {
         "title": "Exodus",
-        "start": 2551.8879999999995
+        "start": 2568
       },
       {
         "title": "Jamming",
-        "start": 2809.1939999999995
+        "start": 2826
       }
     ],
     "cover": "media/bob-marley-and-the-wailers_legend.jpg",
@@ -179,10 +238,76 @@
         "start": 0
       },
       {
-        "title": "Redemption Song",
-        "start": 0
+        "title": "Love & Affection",
+        "start": 205.933
+      },
+      {
+        "title": "The Sun Is Shining",
+        "start": 365.613
+      },
+      {
+        "title": "Soul Rebel",
+        "start": 497.613
+      },
+      {
+        "title": "Lively Up Yourself",
+        "start": 697.093
+      },
+      {
+        "title": "Trenchtown Rock",
+        "start": 869.746
+      },
+      {
+        "title": "All in One",
+        "start": 1038.746871
+      },
+      {
+        "title": "Wisdom",
+        "start": 1263.5720000000001
+      },
+      {
+        "title": "Rainbow Country",
+        "start": 1458.785
+      },
+      {
+        "title": "Wings of a Dove",
+        "start": 1725.958
+      },
+      {
+        "title": "Do You Remember",
+        "start": 1896.131
+      },
+      {
+        "title": "Dancing Shoes",
+        "start": 2073.1310000000003
+      },
+      {
+        "title": "I'm Still Waiting",
+        "start": 2236.637
+      },
+      {
+        "title": "Who Feels It (Knows It)",
+        "start": 2424.663
+      },
+      {
+        "title": "I Don't Need Your Love",
+        "start": 2567.356
+      },
+      {
+        "title": "Maga Dog",
+        "start": 2737.929
+      },
+      {
+        "title": "Donna",
+        "start": 2922.049
+      },
+      {
+        "title": "Ten Commandments of Love",
+        "start": 3042.662
       }
-    ]
+    ],
+    "cover": "media/bob-marley-and-the-wailers_one-love-and-redemption-song.jpg",
+    "_review": true
   },
   {
     "id": "fito-paez_circo-beat",
@@ -381,11 +506,56 @@
     "audio": "media/Georges Moustaki - Il Y Avait Un Jardin (1971).mp3",
     "tracks": [
       {
-        "title": "Il Y Avait Un Jardin",
+        "title": "Il y avait un jardin",
         "start": 0
+      },
+      {
+        "title": "Je ne sais pas où tu commences",
+        "start": 183.213
+      },
+      {
+        "title": "J’ai vu des rois serviles…",
+        "start": 367.06600000000003
+      },
+      {
+        "title": "L’Homme au cœur blessé",
+        "start": 625.946
+      },
+      {
+        "title": "Marche de Sacco et Vanzetti",
+        "start": 755.812
+      },
+      {
+        "title": "Margot (instrumental)",
+        "start": 892.918
+      },
+      {
+        "title": "Grand‐père",
+        "start": 991.291
+      },
+      {
+        "title": "Où mènent ces routes devant moi",
+        "start": 1142.597
+      },
+      {
+        "title": "En Méditerranée",
+        "start": 1307.8229999999999
+      },
+      {
+        "title": "Nous sommes deux",
+        "start": 1442.0629999999999
+      },
+      {
+        "title": "Tes gestes",
+        "start": 1569.6229999999998
+      },
+      {
+        "title": "Pourquoi mon Dieu",
+        "start": 1987.4229999999998
       }
     ],
-    "cover": "media/georges-moustaki_il-y-avait-un-jardin.jpg"
+    "cover": "media/georges-moustaki_il-y-avait-un-jardin.jpg",
+    "_review": true
   },
   {
     "id": "georges-moustaki_the-best-of-live",
@@ -948,80 +1118,44 @@
     "audio": "media/Johnny Cash - The Best Of.mp3",
     "tracks": [
       {
-        "title": "I Walk the Line",
+        "title": "Ballad Of A Teenage Queen",
         "start": 0
       },
       {
-        "title": "Bonanza",
-        "start": 160.106979
+        "title": "I Walk The Line",
+        "start": 0
       },
       {
-        "title": "Ring of Fire",
-        "start": 293.66600000000005
-      },
-      {
-        "title": "Don't Take Your Guns to Town",
-        "start": 448.53200000000004
-      },
-      {
-        "title": "Don't Think Twice, It's All Right",
-        "start": 632.158
-      },
-      {
-        "title": "Orange Blossom Special",
-        "start": 810.598
-      },
-      {
-        "title": "Big River",
-        "start": 998.0239999999999
-      },
-      {
-        "title": "The Streets of Laredo",
-        "start": 1136.8639999999998
-      },
-      {
-        "title": "If I Were a Carpenter",
-        "start": 1359.1569999999997
-      },
-      {
-        "title": "The One on the Right Is on the Left",
-        "start": 1535.5969999999998
-      },
-      {
-        "title": "Jackson",
-        "start": 1705.936125
-      },
-      {
-        "title": "Sunday Morning Coming Down",
-        "start": 1872.0229999999997
-      },
-      {
-        "title": "Remember the Alamo",
-        "start": 2122.863
-      },
-      {
-        "title": "Five Feet High and Rising",
-        "start": 2291.596
-      },
-      {
-        "title": "A Boy Named Sue",
-        "start": 2400.156
-      },
-      {
-        "title": "Guess Things Happen That Way",
-        "start": 2622.529
+        "title": "There You Go",
+        "start": 0
       },
       {
         "title": "Folsom Prison Blues",
-        "start": 2737.089
+        "start": 0
       },
       {
-        "title": "Give My Love to Rose",
-        "start": 2903.2889999999998
+        "title": "Get Rhythm",
+        "start": 0
       },
       {
-        "title": "Danny Boy",
-        "start": 3045.689
+        "title": "Come In Stranger",
+        "start": 0
+      },
+      {
+        "title": "Train Of Love",
+        "start": 0
+      },
+      {
+        "title": "Next In Line",
+        "start": 0
+      },
+      {
+        "title": "Cry! Cry! Cry!",
+        "start": 0
+      },
+      {
+        "title": "Don't Make Me Go",
+        "start": 0
       }
     ],
     "cover": "media/johnny-cash_the-best-of.jpg",
