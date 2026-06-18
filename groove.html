@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Groove</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
+
+    :root {
+      --bg-color: #080808;
+      --surface-color: #121212;
+      --surface-hover: #1e1e1e;
+      --text-primary: #f0f0f0;
+      --text-secondary: #888888;
+      --text-muted: #555555;
+      --accent: #ffffff;
+      --border-color: #222222;
+      --font-sans: 'Inter', sans-serif;
+      --font-serif: 'Playfair Display', serif;
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .hidden { display: none !important; }
+    h1, h2, h3 { font-weight: normal; }
+    .serif { font-family: var(--font-serif); }
+    .uppercase { text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.75rem; }
+
+    .app-container { min-height: 100vh; display: flex; flex-direction: column; }
+
+    button {
+      background: none; border: none; color: inherit;
+      cursor: pointer; font-family: inherit; transition: var(--transition);
+    }
+    button:hover { opacity: 0.7; }
+    button:focus { outline: none; }
+
+    .icon-btn {
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+    }
+    .icon-btn svg { width: 24px; height: 24px; }
+
+    .play-btn-large {
+      width: 64px; height: 64px;
+      background: var(--text-primary);
+      color: var(--bg-color);
+    }
+    .play-btn-large:hover { transform: scale(1.05); opacity: 1; }
+
+    .app-header {
+      padding: 2rem 5%;
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .app-logo { font-size: 1.25rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; }
+
+    .library-view { padding: 3rem 5%; flex: 1; }
+    .library-title { margin-bottom: 2rem; color: var(--text-secondary); }
+
+    .album-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 3rem 2rem;
+    }
+    .album-card { cursor: pointer; position: relative; }
+    .album-cover-wrapper {
+      width: 100%; aspect-ratio: 1 / 1; overflow: hidden;
+      background-color: var(--surface-color); margin-bottom: 1rem;
+      position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      transition: var(--transition);
+    }
+    .album-card:hover .album-cover-wrapper { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.8); }
+    .album-cover { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+    .album-card:hover .album-cover { transform: scale(1.03); }
+    .album-card.active .album-cover-wrapper { box-shadow: 0 0 0 2px var(--text-primary), 0 15px 40px rgba(0,0,0,0.8); }
+    .album-meta-title { font-size: 1.1rem; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .album-meta-artist { font-size: 0.85rem; color: var(--text-secondary); }
+
+    .player-view { display: flex; flex-direction: column; min-height: 100vh; }
+    .player-nav { padding: 1.5rem 5%; display: flex; align-items: center; }
+    .player-nav-btn {
+      display: flex; align-items: center; gap: 0.5rem;
+      color: var(--text-secondary); font-size: 0.85rem;
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .player-nav-btn svg { width: 20px; height: 20px; }
+    .player-nav-btn:hover { color: var(--text-primary); }
+
+    .player-content {
+      display: flex; flex-direction: column; flex: 1;
+      padding: 0 5% 4rem 5%; gap: 3rem;
+    }
+    @media (min-width: 900px) {
+      .player-content {
+        flex-direction: row; gap: 5rem; align-items: center;
+        max-width: 1400px; margin: 0 auto; width: 100%;
+      }
+    }
+
+    .player-left {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; max-width: 500px; margin: 0 auto; width: 100%;
+    }
+    .active-cover-container {
+      width: 100%; aspect-ratio: 1 / 1;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+      margin-bottom: 3rem; position: relative;
+    }
+    .active-cover-container::after {
+      content: ''; position: absolute;
+      top: 2%; right: -5%; bottom: 2%; width: 100%;
+      background: #050505; border-radius: 50%; z-index: -1;
+      box-shadow: inset 0 0 0 2px #111, inset 0 0 15px #000;
+      transition: var(--transition);
+    }
+    .active-cover { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 1; }
+    .player-controls-container { width: 100%; }
+
+    .progress-container { margin-bottom: 2rem; }
+    .progress-bar {
+      height: 3px; background: var(--surface-hover); width: 100%;
+      cursor: pointer; position: relative; border-radius: 2px;
+    }
+    .progress-fill {
+      height: 100%; background: var(--text-primary); border-radius: 2px;
+      position: relative; width: 0%; transition: width 0.1s linear;
+    }
+    .progress-fill::after {
+      content: ''; position: absolute; right: -4px; top: -3px;
+      width: 9px; height: 9px; background: var(--text-primary);
+      border-radius: 50%; opacity: 0; transition: opacity 0.2s;
+    }
+    .progress-container:hover .progress-fill::after { opacity: 1; }
+    .time-info {
+      display: flex; justify-content: space-between;
+      font-size: 0.75rem; color: var(--text-secondary);
+      margin-top: 0.5rem; font-variant-numeric: tabular-nums;
+    }
+    .controls { display: flex; align-items: center; justify-content: center; gap: 1.5rem; }
+
+    .player-right {
+      flex: 1.2; display: flex; flex-direction: column;
+      width: 100%; height: 100%; max-height: 80vh;
+    }
+    .album-header { margin-bottom: 2.5rem; }
+    .album-header .uppercase { color: var(--text-secondary); display: block; margin-bottom: 0.5rem; }
+    .album-header h1 { font-size: clamp(2.5rem, 5vw, 4.5rem); line-height: 1.1; margin-bottom: 0.5rem; }
+    .album-header .artist { font-size: 1.25rem; color: var(--text-muted); }
+
+    .info-toggle { display: flex; gap: 1rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; }
+    .toggle-btn {
+      padding: 0.5rem 0; font-size: 0.85rem;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--text-muted); position: relative;
+    }
+    .toggle-btn.active { color: var(--text-primary); }
+    .toggle-btn.active::after {
+      content: ''; position: absolute; bottom: -1px; left: 0;
+      width: 100%; height: 1px; background: var(--text-primary);
+    }
+
+    .tab-content { flex: 1; overflow-y: auto; scrollbar-width: none; }
+    .tab-content::-webkit-scrollbar { display: none; }
+
+    .track-item {
+      display: flex; align-items: center;
+      padding: 1rem 0; border-bottom: 1px solid var(--surface-color);
+      color: var(--text-secondary); transition: var(--transition);
+      width: 100%; text-align: left;
+    }
+    .track-item:hover { color: var(--text-primary); padding-left: 0.5rem; }
+    .track-item.active { color: var(--text-primary); }
+    .track-item.active .track-num { color: var(--accent); }
+    .track-num { width: 3rem; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+    .track-title { flex: 1; font-size: 1rem; }
+    .track-duration { font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- HEADER -->
+  <header id="main-header" class="app-header">
+    <div class="app-logo">Groove</div>
+  </header>
+
+  <!-- LIBRARY VIEW -->
+  <main id="view-library" class="library-view">
+    <h2 class="library-title uppercase">Your Collection</h2>
+    <div id="album-grid" class="album-grid"></div>
+  </main>
+
+  <!-- PLAYER VIEW -->
+  <main id="view-player" class="player-view hidden">
+    <nav class="player-nav">
+      <button id="btn-back" class="player-nav-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+        Collection
+      </button>
+    </nav>
+
+    <div class="player-content">
+      <div class="player-left">
+        <div class="active-cover-container">
+          <img id="player-cover" src="" alt="" class="active-cover" />
+        </div>
+        <div class="player-controls-container">
+          <div class="progress-container">
+            <div class="progress-bar" id="progress-bar-hit">
+              <div id="progress-fill" class="progress-fill"></div>
+            </div>
+            <div class="time-info">
+              <span id="time-current">0:00</span>
+              <span id="time-total">--:--</span>
+            </div>
+          </div>
+          <div class="controls">
+            <button id="btn-prev" class="icon-btn" aria-label="Previous">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+            </button>
+            <button id="btn-play-pause" class="icon-btn play-btn-large" aria-label="Play/Pause">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <button id="btn-next" class="icon-btn" aria-label="Next">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="player-right">
+        <header class="album-header">
+          <span id="player-meta" class="uppercase"></span>
+          <h1 id="player-title" class="serif"></h1>
+          <p id="player-artist" class="artist"></p>
+        </header>
+        <div class="info-toggle">
+          <button id="tab-tracks" class="toggle-btn active">Tracks</button>
+          <button id="tab-notes" class="toggle-btn">Notes</button>
+        </div>
+        <div id="content-tracks" class="tab-content"></div>
+        <div id="content-notes" class="tab-content hidden" style="font-size:1.05rem;line-height:1.8;color:var(--text-secondary);padding-right:1rem">
+          <p id="notes-text"><em>No notes available for this album.</em></p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script type="module">
+  import createPlayer from './player.js';
+
+  // --- SVG icons ---
+  const ICON_PLAY  = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+  const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+
+  // --- DOM refs ---
+  const $ = id => document.getElementById(id);
+  const el = {
+    header:       $('main-header'),
+    viewLibrary:  $('view-library'),
+    viewPlayer:   $('view-player'),
+    albumGrid:    $('album-grid'),
+    btnBack:      $('btn-back'),
+    cover:        $('player-cover'),
+    meta:         $('player-meta'),
+    title:        $('player-title'),
+    artist:       $('player-artist'),
+    tabTracks:    $('tab-tracks'),
+    tabNotes:     $('tab-notes'),
+    contentTracks:$('content-tracks'),
+    contentNotes: $('content-notes'),
+    notesText:    $('notes-text'),
+    btnPlayPause: $('btn-play-pause'),
+    btnPrev:      $('btn-prev'),
+    btnNext:      $('btn-next'),
+    progressFill: $('progress-fill'),
+    progressHit:  $('progress-bar-hit'),
+    timeCurrent:  $('time-current'),
+    timeTotal:    $('time-total'),
+  };
+
+  // --- helpers ---
+
+  function formatSecs(s) {
+    if (!isFinite(s) || s < 0) return '--:--';
+    const m = Math.floor(s / 60);
+    const ss = Math.floor(s % 60);
+    return `${m}:${ss < 10 ? '0' : ''}${ss}`;
+  }
+
+  function switchTab(name) {
+    const isTrack = name === 'tracks';
+    el.tabTracks.classList.toggle('active', isTrack);
+    el.tabNotes.classList.toggle('active', !isTrack);
+    el.contentTracks.classList.toggle('hidden', !isTrack);
+    el.contentNotes.classList.toggle('hidden', isTrack);
+  }
+
+  function showPlayerView(album) {
+    el.cover.src = album.cover || '';
+    el.cover.alt = album.title;
+    el.meta.textContent = album.year ?? '';
+    el.title.textContent = album.title;
+    el.artist.textContent = album.artist;
+    el.notesText.innerHTML = '<em>No notes available for this album.</em>';
+    switchTab('tracks');
+    el.header.classList.add('hidden');
+    el.viewLibrary.classList.add('hidden');
+    el.viewPlayer.classList.remove('hidden');
+  }
+
+  function renderTracklist(album, activeIndex) {
+    el.contentTracks.innerHTML = album.tracks.map((track, i) => {
+      // derive per-track duration from adjacent start times
+      const nextStart = album.tracks[i + 1]?.start;
+      const durLabel = nextStart != null ? formatSecs(nextStart - track.start) : '--:--';
+      const isActive = i === activeIndex;
+      const numDisplay = isActive
+        ? '<span style="color:var(--text-primary)">▶</span>'
+        : String(i + 1).padStart(2, '0');
+      return `<button class="track-item${isActive ? ' active' : ''}" data-i="${i}">
+        <span class="track-num">${numDisplay}</span>
+        <span class="track-title">${track.title}</span>
+        <span class="track-duration">${durLabel}</span>
+      </button>`;
+    }).join('');
+
+    el.contentTracks.querySelectorAll('.track-item').forEach(btn => {
+      btn.addEventListener('click', () => player.seekToTrack(Number(btn.dataset.i)));
+    });
+  }
+
+  function highlightLibraryCard(albumId) {
+    el.albumGrid.querySelectorAll('.album-card').forEach(card => {
+      card.classList.toggle('active', card.dataset.id === albumId);
+    });
+  }
+
+  // --- boot ---
+
+  const albums = await fetch('albums.json').then(r => r.json());
+  const player = createPlayer(albums);
+
+  // render album grid
+  el.albumGrid.innerHTML = albums.map(a => `
+    <div class="album-card" data-id="${a.id}">
+      <div class="album-cover-wrapper">
+        <img src="${a.cover || ''}" alt="${a.title}" class="album-cover" loading="lazy"
+             onerror="this.removeAttribute('src')" />
+      </div>
+      <div class="album-meta">
+        <h3 class="album-meta-title serif">${a.title}</h3>
+        <p class="album-meta-artist">${a.artist}</p>
+      </div>
+    </div>
+  `).join('');
+
+  el.albumGrid.querySelectorAll('.album-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const album = albums.find(a => a.id === card.dataset.id);
+      player.loadAlbum(album);
+      showPlayerView(album);
+    });
+  });
+
+  // if state was restored on init, show the player view immediately
+  if (player.currentAlbum) {
+    showPlayerView(player.currentAlbum);
+    renderTracklist(player.currentAlbum, player.currentTrackIndex);
+    highlightLibraryCard(player.currentAlbum.id);
+    el.btnPlayPause.innerHTML = player.isPlaying ? ICON_PAUSE : ICON_PLAY;
+  }
+
+  // --- player event subscriptions ---
+
+  player.on('albumloaded', ({ album }) => {
+    highlightLibraryCard(album.id);
+  });
+
+  player.on('trackchange', ({ album, trackIndex }) => {
+    renderTracklist(album, trackIndex);
+    // update last-track duration once audio metadata is available
+    // (the last track's duration can't be known from start offsets alone)
+  });
+
+  player.on('play',  () => { el.btnPlayPause.innerHTML = ICON_PAUSE; });
+  player.on('pause', () => { el.btnPlayPause.innerHTML = ICON_PLAY; });
+
+  player.on('timeupdate', ({ currentTime, duration }) => {
+    const album = player.currentAlbum;
+    if (!album) return;
+    const ti = player.currentTrackIndex;
+    const track = album.tracks[ti];
+    const trackStart = track.start;
+    const trackEnd = album.tracks[ti + 1]?.start ?? duration;
+    const trackDur = trackEnd - trackStart;
+    const trackPos = currentTime - trackStart;
+    const trackProgress = trackDur > 0 ? trackPos / trackDur : 0;
+
+    el.progressFill.style.width = `${(trackProgress * 100).toFixed(2)}%`;
+    el.timeCurrent.textContent = formatSecs(trackPos);
+    el.timeTotal.textContent   = formatSecs(trackDur);
+  });
+
+  // --- control button wiring ---
+
+  el.btnBack.addEventListener('click', () => {
+    el.header.classList.remove('hidden');
+    el.viewLibrary.classList.remove('hidden');
+    el.viewPlayer.classList.add('hidden');
+  });
+
+  el.btnPlayPause.addEventListener('click', () => player.toggle());
+  el.btnPrev.addEventListener('click', () => player.prevTrack());
+  el.btnNext.addEventListener('click', () => player.nextTrack());
+
+  el.tabTracks.addEventListener('click', () => switchTab('tracks'));
+  el.tabNotes.addEventListener('click', () => switchTab('notes'));
+
+  // click on progress bar → seek to that position within the current track
+  el.progressHit.addEventListener('click', e => {
+    const album = player.currentAlbum;
+    if (!album) return;
+    const ti = player.currentTrackIndex;
+    const trackStart = album.tracks[ti].start;
+    const trackEnd   = album.tracks[ti + 1]?.start ?? player.duration;
+    const trackDur   = trackEnd - trackStart;
+    const ratio = e.offsetX / el.progressHit.offsetWidth;
+    player.seekToTime(trackStart + ratio * trackDur);
+  });
+
+  // spacebar
+  document.addEventListener('keydown', e => {
+    if (e.code !== 'Space') return;
+    const tag = document.activeElement?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
+    e.preventDefault();
+    if (!player.currentAlbum) return;
+    player.toggle();
+  });
+</script>
+</body>
+</html>
