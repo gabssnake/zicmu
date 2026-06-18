@@ -403,6 +403,8 @@
         ? [{ src: currentAlbum.cover, sizes: '512x512', type: 'image/jpeg' }]
         : []
     });
+    navigator.mediaSession.setActionHandler('play', () => audio.play().catch(() => {}));
+    navigator.mediaSession.setActionHandler('pause', () => audio.pause());
     navigator.mediaSession.setActionHandler('previoustrack', prevTrack);
     navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
   }
@@ -433,6 +435,17 @@
     }, { once: true });
     updateMediaSession();
   }
+
+  // --- keyboard ---
+
+  document.addEventListener('keydown', e => {
+    if (e.code !== 'Space') return;
+    const tag = document.activeElement?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
+    e.preventDefault();
+    if (!currentAlbum) return;
+    audio.paused ? audio.play().catch(() => {}) : audio.pause();
+  });
 
   // --- init ---
 
