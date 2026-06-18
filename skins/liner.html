@@ -207,16 +207,9 @@
     </div>
 
     <script type="module">
-        import createPlayer from './player.js';
+        import { initPlayer, formatTime, trackProgress, seekFromClick, setupKeyboard } from './skin.js';
 
         // --- helpers ---
-
-        function formatSecs(s) {
-            if (!Number.isFinite(s) || s < 0) return '0:00';
-            const m = Math.floor(s / 60);
-            const ss = Math.floor(s % 60);
-            return `${m}:${ss < 10 ? '0' : ''}${ss}`;
-        }
 
         const VINYL_COLORS = ['#2c3e50','#8e44ad','#d35400','#e74c3c','#7f8c8d','#2980b9','#27ae60','#16a085','#f39c12','#c0392b'];
 
@@ -400,7 +393,7 @@
             els.tracklist.innerHTML = '';
             viewingAlbum.tracks.forEach((track, i) => {
                 const nextStart = viewingAlbum.tracks[i + 1]?.start;
-                const durLabel = nextStart == null ? '--:--' : formatSecs(nextStart - track.start);
+                const durLabel = nextStart == null ? '--:--' : formatTime(nextStart - track.start);
                 const isActive = player.currentAlbum?.id === viewingAlbum.id && player.currentTrackIndex === i;
 
                 const li = document.createElement('li');
@@ -466,22 +459,9 @@
             });
         }
 
-        // --- seek via progress bar click ---
-
-        function seekFromClick(e) {
-            if (!player.currentAlbum) return;
-            const rect = els.progressContainer.getBoundingClientRect();
-            const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-            const ti = player.currentTrackIndex;
-            const trackStart = player.currentAlbum.tracks[ti].start;
-            const trackEnd = player.currentAlbum.tracks[ti + 1]?.start ?? player.duration;
-            player.seekToTime(trackStart + ratio * (trackEnd - trackStart));
-        }
-
         // --- boot ---
 
-        const albums = await fetch('albums.json').then(r => r.json());
-        const player = createPlayer(albums);
+        const { player, albums } = await initPlayer();
 
         renderLibrary(albums);
 
@@ -519,21 +499,13 @@
             updateMiniPlayer();
         });
 
-        player.on('timeupdate', ({ currentTime, duration }) => {
-            const album = player.currentAlbum;
-            if (album && viewingAlbum && album.id === viewingAlbum.id) {
-                const ti = player.currentTrackIndex;
-                const trackStart = album.tracks[ti].start;
-                const trackEnd = album.tracks[ti + 1]?.start ?? duration;
-                const trackDur = trackEnd - trackStart;
-                const trackPos = currentTime - trackStart;
-                const pct = trackDur > 0 ? (trackPos / trackDur) * 100 : 0;
-
-                els.timeCurrent.textContent = formatSecs(trackPos);
-                els.timeTotal.textContent = formatSecs(trackDur);
-                els.progressBar.style.width = `${pct}%`;
-                els.progressHandle.style.left = `${pct}%`;
-            }
+        player.on('timeupdate', () => {
+            if (!player.currentAlbum || player.currentAlbum.id !== viewingAlbum?.id) return;
+            const { pct, trackPos, trackDur } = trackProgress(player);
+            els.timeCurrent.textContent = formatTime(trackPos);
+            els.timeTotal.textContent = formatTime(trackDur);
+            els.progressBar.style.width = `${pct}%`;
+            els.progressHandle.style.left = `${pct}%`;
         });
 
         // --- controls ---
@@ -565,7 +537,7 @@
         els.btnPrev.addEventListener('click', () => player.prevTrack());
         els.btnNext.addEventListener('click', () => player.nextTrack());
 
-        els.progressContainer.addEventListener('click', seekFromClick);
+        els.progressContainer.addEventListener('click', e => seekFromClick(e, els.progressContainer, player));
 
         els.miniPlayer.addEventListener('click', returnToAlbum);
         els.miniBtnPlay.addEventListener('click', e => {
@@ -573,15 +545,7 @@
             player.toggle();
         });
 
-        // spacebar
-        document.addEventListener('keydown', e => {
-            if (e.code !== 'Space') return;
-            const tag = document.activeElement?.tagName;
-            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
-            e.preventDefault();
-            if (!player.currentAlbum) return;
-            player.toggle();
-        });
+        setupKeyboard(player);
     </script>
 </body>
 </html>

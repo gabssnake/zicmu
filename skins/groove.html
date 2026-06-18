@@ -263,7 +263,7 @@
 </div>
 
 <script type="module">
-  import createPlayer from './player.js';
+  import { initPlayer, formatTime, trackProgress, seekFromClick, setupKeyboard } from './skin.js';
 
   // --- SVG icons ---
   const ICON_PLAY  = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
@@ -297,13 +297,6 @@
 
   // --- helpers ---
 
-  function formatSecs(s) {
-    if (!isFinite(s) || s < 0) return '--:--';
-    const m = Math.floor(s / 60);
-    const ss = Math.floor(s % 60);
-    return `${m}:${ss < 10 ? '0' : ''}${ss}`;
-  }
-
   function switchTab(name) {
     const isTrack = name === 'tracks';
     el.tabTracks.classList.toggle('active', isTrack);
@@ -329,7 +322,7 @@
     el.contentTracks.innerHTML = album.tracks.map((track, i) => {
       // derive per-track duration from adjacent start times
       const nextStart = album.tracks[i + 1]?.start;
-      const durLabel = nextStart != null ? formatSecs(nextStart - track.start) : '--:--';
+      const durLabel = nextStart != null ? formatTime(nextStart - track.start) : '--:--';
       const isActive = i === activeIndex;
       const numDisplay = isActive
         ? '<span style="color:var(--text-primary)">▶</span>'
@@ -354,8 +347,7 @@
 
   // --- boot ---
 
-  const albums = await fetch('albums.json').then(r => r.json());
-  const player = createPlayer(albums);
+  const { player, albums } = await initPlayer();
 
   // render album grid
   el.albumGrid.innerHTML = albums.map(a => `
@@ -402,20 +394,11 @@
   player.on('play',  () => { el.btnPlayPause.innerHTML = ICON_PAUSE; });
   player.on('pause', () => { el.btnPlayPause.innerHTML = ICON_PLAY; });
 
-  player.on('timeupdate', ({ currentTime, duration }) => {
-    const album = player.currentAlbum;
-    if (!album) return;
-    const ti = player.currentTrackIndex;
-    const track = album.tracks[ti];
-    const trackStart = track.start;
-    const trackEnd = album.tracks[ti + 1]?.start ?? duration;
-    const trackDur = trackEnd - trackStart;
-    const trackPos = currentTime - trackStart;
-    const trackProgress = trackDur > 0 ? trackPos / trackDur : 0;
-
-    el.progressFill.style.width = `${(trackProgress * 100).toFixed(2)}%`;
-    el.timeCurrent.textContent = formatSecs(trackPos);
-    el.timeTotal.textContent   = formatSecs(trackDur);
+  player.on('timeupdate', () => {
+    const { pct, trackPos, trackDur } = trackProgress(player);
+    el.progressFill.style.width = `${pct.toFixed(2)}%`;
+    el.timeCurrent.textContent = formatTime(trackPos);
+    el.timeTotal.textContent   = formatTime(trackDur);
   });
 
   // --- control button wiring ---
@@ -433,27 +416,9 @@
   el.tabTracks.addEventListener('click', () => switchTab('tracks'));
   el.tabNotes.addEventListener('click', () => switchTab('notes'));
 
-  // click on progress bar → seek to that position within the current track
-  el.progressHit.addEventListener('click', e => {
-    const album = player.currentAlbum;
-    if (!album) return;
-    const ti = player.currentTrackIndex;
-    const trackStart = album.tracks[ti].start;
-    const trackEnd   = album.tracks[ti + 1]?.start ?? player.duration;
-    const trackDur   = trackEnd - trackStart;
-    const ratio = e.offsetX / el.progressHit.offsetWidth;
-    player.seekToTime(trackStart + ratio * trackDur);
-  });
+  el.progressHit.addEventListener('click', e => seekFromClick(e, el.progressHit, player));
 
-  // spacebar
-  document.addEventListener('keydown', e => {
-    if (e.code !== 'Space') return;
-    const tag = document.activeElement?.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
-    e.preventDefault();
-    if (!player.currentAlbum) return;
-    player.toggle();
-  });
+  setupKeyboard(player);
 </script>
 </body>
 </html>

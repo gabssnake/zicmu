@@ -294,16 +294,7 @@
     </div>
 
     <script type="module">
-        import createPlayer from './player.js';
-
-        // --- helpers ---
-
-        function formatSecs(s) {
-            if (!Number.isFinite(s) || s < 0) return '0:00';
-            const m = Math.floor(s / 60);
-            const ss = Math.floor(s % 60);
-            return `${m}:${ss < 10 ? '0' : ''}${ss}`;
-        }
+        import { initPlayer, formatTime, trackProgress, seekFromClick, setupKeyboard } from './skin.js';
 
         // --- DOM refs ---
 
@@ -413,7 +404,7 @@
             if (!currentAlbum) return;
             els.pvTracklist.innerHTML = currentAlbum.tracks.map((track, i) => {
                 const nextStart = currentAlbum.tracks[i + 1]?.start;
-                const durLabel = nextStart == null ? '--:--' : formatSecs(nextStart - track.start);
+                const durLabel = nextStart == null ? '--:--' : formatTime(nextStart - track.start);
                 const isActive = player.currentAlbum?.id === currentAlbum.id && player.currentTrackIndex === i;
                 return `
                     <li class="track-item ${isActive ? 'playing' : ''}" data-i="${i}">
@@ -437,20 +428,9 @@
             });
         }
 
-        function seekFromClick(e) {
-            if (!player.currentAlbum) return;
-            const rect = els.progressBar.getBoundingClientRect();
-            const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-            const ti = player.currentTrackIndex;
-            const trackStart = player.currentAlbum.tracks[ti].start;
-            const trackEnd = player.currentAlbum.tracks[ti + 1]?.start ?? player.duration;
-            player.seekToTime(trackStart + ratio * (trackEnd - trackStart));
-        }
-
         // --- boot ---
 
-        const albums = await fetch('albums.json').then(r => r.json());
-        const player = createPlayer(albums);
+        const { player, albums } = await initPlayer();
 
         renderLibrary(albums);
 
@@ -475,20 +455,12 @@
         player.on('play',  () => setPlayIcon(true));
         player.on('pause', () => setPlayIcon(false));
 
-        player.on('timeupdate', ({ currentTime, duration }) => {
-            const album = player.currentAlbum;
-            if (album && currentAlbum?.id === album.id) {
-                const ti = player.currentTrackIndex;
-                const trackStart = album.tracks[ti].start;
-                const trackEnd = album.tracks[ti + 1]?.start ?? duration;
-                const trackDur = trackEnd - trackStart;
-                const trackPos = currentTime - trackStart;
-                const pct = trackDur > 0 ? (trackPos / trackDur) * 100 : 0;
-
-                els.timeCurrent.textContent = formatSecs(trackPos);
-                els.timeTotal.textContent = formatSecs(trackDur);
-                els.progressFill.style.width = `${pct}%`;
-            }
+        player.on('timeupdate', () => {
+            if (!player.currentAlbum || player.currentAlbum.id !== currentAlbum?.id) return;
+            const { pct, trackPos, trackDur } = trackProgress(player);
+            els.timeCurrent.textContent = formatTime(trackPos);
+            els.timeTotal.textContent = formatTime(trackDur);
+            els.progressFill.style.width = `${pct}%`;
         });
 
         // --- controls ---
@@ -496,7 +468,7 @@
         els.btnBack.addEventListener('click', showLibrary);
         els.tabBtnTracks.addEventListener('click', () => switchTab('tracks'));
         els.tabBtnNotes.addEventListener('click', () => switchTab('notes'));
-        els.progressBar.addEventListener('click', seekFromClick);
+        els.progressBar.addEventListener('click', e => seekFromClick(e, els.progressBar, player));
 
         els.btnPlayPause.addEventListener('click', () => {
             if (!currentAlbum) return;
@@ -511,14 +483,7 @@
         els.btnPrev.addEventListener('click', () => player.prevTrack());
         els.btnNext.addEventListener('click', () => player.nextTrack());
 
-        document.addEventListener('keydown', e => {
-            if (e.code !== 'Space') return;
-            const tag = document.activeElement?.tagName;
-            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
-            e.preventDefault();
-            if (!player.currentAlbum) return;
-            player.toggle();
-        });
+        setupKeyboard(player);
     </script>
 </body>
 </html>

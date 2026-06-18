@@ -327,12 +327,7 @@
 </div>
 
 <script type="module">
-  import createPlayer from './player.js';
-
-  function fmt(s) {
-    if (!Number.isFinite(s) || s < 0) return '0:00';
-    return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
-  }
+  import { initPlayer, formatTime, trackProgress, seekFromClick, setupKeyboard } from './skin.js';
 
   // Build EQ bars with varied peaks and speeds
   const eqEl   = document.getElementById('eq');
@@ -350,8 +345,7 @@
     eqEl.appendChild(b);
   }
 
-  const albums = await fetch('albums.json').then(r => r.json());
-  const player = createPlayer(albums);
+  const { player, albums } = await initPlayer();
 
   const dispTime   = document.getElementById('display-time');
   const dispTitle  = document.getElementById('display-title');
@@ -404,7 +398,7 @@
     }
     a.tracks.forEach((t, i) => {
       const nextStart = a.tracks[i + 1]?.start;
-      const dur = nextStart != null ? fmt(nextStart - t.start) : '--:--';
+      const dur = nextStart != null ? formatTime(nextStart - t.start) : '--:--';
       const row = document.createElement('div');
       row.className = 'track-row' + (i === player.currentTrackIndex ? ' active' : '');
       row.innerHTML = `
@@ -422,16 +416,9 @@
     eqEl.classList.toggle('playing', on);
   }
 
-  function updateProgress(currentTime, duration) {
-    const a = player.currentAlbum;
-    if (!a) return;
-    const ti    = player.currentTrackIndex;
-    const start = a.tracks[ti].start;
-    const end   = a.tracks[ti + 1]?.start ?? duration;
-    const dur   = end - start;
-    const pos   = currentTime - start;
-    const pct   = dur > 0 ? (pos / dur) * 100 : 0;
-    dispTime.textContent = fmt(pos);
+  function updateProgress() {
+    const { pct, trackPos } = trackProgress(player);
+    dispTime.textContent = formatTime(trackPos);
     seekFill.style.width = `${pct}%`;
     seekKnob.style.left  = `${pct}%`;
   }
@@ -453,21 +440,9 @@
   player.on('play',  () => setPlaying(true));
   player.on('pause', () => setPlaying(false));
 
-  player.on('timeupdate', ({ currentTime, duration }) => {
-    updateProgress(currentTime, duration);
-  });
+  player.on('timeupdate', () => updateProgress());
 
-  // Seek on click
-  seekWrap.addEventListener('click', e => {
-    if (!player.currentAlbum) return;
-    const rect  = seekWrap.getBoundingClientRect();
-    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    const a     = player.currentAlbum;
-    const ti    = player.currentTrackIndex;
-    const start = a.tracks[ti].start;
-    const end   = a.tracks[ti + 1]?.start ?? player.duration;
-    player.seekToTime(start + ratio * (end - start));
-  });
+  seekWrap.addEventListener('click', e => seekFromClick(e, seekWrap, player));
 
   // Controls
   document.getElementById('btn-play').addEventListener('click', () => {
@@ -483,14 +458,7 @@
   btnPrev.addEventListener('click', () => player.prevTrack());
   btnNext.addEventListener('click', () => player.nextTrack());
 
-  // Spacebar
-  document.addEventListener('keydown', e => {
-    if (e.code !== 'Space') return;
-    const tag = document.activeElement?.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
-    e.preventDefault();
-    player.toggle();
-  });
+  setupKeyboard(player);
 
   // Restore persisted state
   renderAlbums();
