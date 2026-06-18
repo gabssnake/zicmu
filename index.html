@@ -325,21 +325,35 @@
 
   // --- playback ---
 
+  function applySeek(start) {
+    audio.currentTime = start;
+    audio.play().catch(() => {});
+  }
+
+  function seekWhenReady(start) {
+    if (audio.readyState >= 1) {
+      applySeek(start);
+    } else {
+      audio.addEventListener('loadedmetadata', () => applySeek(start), { once: true });
+    }
+  }
+
   function loadAlbum(album, trackIndex) {
     currentAlbum = album;
     currentTrackIndex = trackIndex;
     audio.src = album.audio;
-    audio.currentTime = album.tracks[trackIndex].start;
     renderPlayer();
     highlightAlbum(album.id);
     updateMediaSession();
     saveState();
+    const start = album.tracks[trackIndex].start;
+    if (start > 0) seekWhenReady(start);
   }
 
   function seekToTrack(index) {
     currentTrackIndex = index;
-    audio.currentTime = currentAlbum.tracks[index].start;
-    audio.play();
+    const start = currentAlbum.tracks[index].start;
+    seekWhenReady(start);
     updateMediaSession();
     saveState();
     highlightTrack(index);
