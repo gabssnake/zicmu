@@ -6,18 +6,18 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 const DATA_DIR = join(__dirname, 'cache');
+const MEDIA_DIR = join(ROOT, 'media');
 
 const rawAlbums = JSON.parse(readFileSync(join(DATA_DIR, 'albums-raw.json'), 'utf8'));
 const coversReport = JSON.parse(readFileSync(join(DATA_DIR, 'covers-report.json'), 'utf8'));
 
 const coversByid = Object.fromEntries(coversReport.map(r => [r.id, r]));
 
-const outPath = join(ROOT, 'albums.json');
-const existing = existsSync(outPath) ? JSON.parse(readFileSync(outPath, 'utf8')) : [];
-const existingById = Object.fromEntries(existing.map(a => [a.id, a]));
+let written = 0, skipped = 0;
 
-const albums = rawAlbums.map(album => {
-  if (existingById[album.id]) return existingById[album.id];
+for (const album of rawAlbums) {
+  const dest = join(MEDIA_DIR, `${album.id}.json`);
+  if (existsSync(dest)) { skipped++; continue; }
 
   const coverRecord = coversByid[album.id];
   const tracksPath = join(DATA_DIR, 'tracks', `${album.id}.json`);
@@ -47,19 +47,9 @@ const albums = rawAlbums.map(album => {
     entry._review = true;
   }
 
-  return entry;
-});
+  writeFileSync(dest, JSON.stringify(entry, null, 2));
+  written++;
+}
 
-writeFileSync(outPath, JSON.stringify(albums, null, 2));
-
-// summary
-const withCovers = albums.filter(a => a.cover).length;
-const withTracks = albums.filter(a => a.tracks.length > 1).length;
-const needsReview = albums.filter(a => a._review).length;
-
-console.log(`albums.json written with ${albums.length} entries`);
-console.log(`  covers: ${withCovers}/${albums.length}`);
-console.log(`  multi-track: ${withTracks}/${albums.length}`);
-console.log(`  needs review: ${needsReview}/${albums.length}`);
-console.log(`\nneeds-review albums:`);
-albums.filter(a => a._review).forEach(a => console.log(`  ${a.id}  (${a.tracks.length} tracks)`));
+console.log(`wrote ${written} new album files, skipped ${skipped} (already exist)`);
+console.log(`run node ingest/build-index.js to rebuild albums.json`);

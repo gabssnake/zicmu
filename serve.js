@@ -4,9 +4,13 @@ import { createServer } from 'node:http';
 import { createReadStream, statSync } from 'node:fs';
 import { join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const PORT = 8765;
+
+const result = spawnSync('node', [join(ROOT, 'ingest/build-index.js')], { stdio: 'inherit' });
+if (result.status !== 0) console.warn('warn: build-index.js failed, serving stale albums.json');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
