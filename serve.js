@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Static file server with HTTP range request support (required for audio seeking)
 import { createServer } from 'node:http';
-import { createReadStream, statSync, existsSync } from 'node:fs';
+import { createReadStream, statSync } from 'node:fs';
 import { join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -22,11 +22,9 @@ createServer((req, res) => {
   const urlPath = decodeURIComponent(req.url.split('?')[0]);
   const filePath = join(ROOT, urlPath === '/' ? 'index.html' : urlPath);
 
-  if (!existsSync(filePath) || !statSync(filePath).isFile()) {
-    res.writeHead(404); res.end('Not found'); return;
-  }
-
-  const stat = statSync(filePath);
+  let stat;
+  try { stat = statSync(filePath); } catch { res.writeHead(404); res.end('Not found'); return; }
+  if (!stat.isFile()) { res.writeHead(404); res.end('Not found'); return; }
   const total = stat.size;
   const mime = MIME[extname(filePath)] ?? 'application/octet-stream';
   const range = req.headers.range;
