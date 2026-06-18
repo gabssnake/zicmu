@@ -44,6 +44,23 @@ node ingest/build-albums.js    # assembles albums.json from the above
 
 **build-albums.js** — combines `albums-raw.json`, `tracks/`, and `covers-report.json` into the final `albums.json`. Strips internal metadata fields. Carries `_review: true` forward for albums that need timestamp work.
 
+## Optional: embed metadata into the MP3
+
+After running the four pipeline steps, you can embed all album metadata directly into each
+MP3 file using ID3v2 tags — title, artist, year, cover art (`APIC`), and chapter markers
+(`CHAP` + `CTOC`) for each track. This makes albums self-contained and portable.
+
+```bash
+node ingest/embed-id3.js                         # embed all albums
+node ingest/embed-id3.js "Artist - Title (Year)" # single album by id
+```
+
+Output files are written as `media/<id>.embedded.mp3`. The original MP3 is not modified.
+Requires `ffmpeg` and `ffprobe` in PATH. Albums with no cover are embedded without art.
+
+Embedded albums can be loaded directly in the browser via `skins/local.html`, which reads
+chapter markers and cover art from ID3v2 without needing `albums.json`.
+
 ## After running
 
 ```bash

@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="../">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Local · zicmu</title>
+  <style>
+    /* ---- base ---- */
+    *, *::before, *::after { box-sizing: border-box; }
+    ::selection { background-color: #3f3f46; }
+
+    /* ---- display ---- */
+    .flex { display: flex; }
+    .grid { display: grid; }
+    .hidden { display: none; }
+    .block { display: block; }
+
+    /* ---- flex/grid ---- */
+    .flex-col { flex-direction: column; }
+    .flex-1 { flex: 1 1 0%; }
+    .shrink-0 { flex-shrink: 0; }
+    .items-center { align-items: center; }
+    .items-end { align-items: flex-end; }
+    .justify-between { justify-content: space-between; }
+    .justify-center { justify-content: center; }
+    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .gap-2 { gap: 0.5rem; }
+    .gap-3 { gap: 0.75rem; }
+    .gap-4 { gap: 1rem; }
+    .gap-6 { gap: 1.5rem; }
+    .gap-8 { gap: 2rem; }
+    .gap-16 { gap: 4rem; }
+
+    /* ---- position ---- */
+    .relative { position: relative; }
+    .absolute { position: absolute; }
+    .fixed { position: fixed; }
+    .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+    .z-0 { z-index: 0; }
+    .z-10 { z-index: 10; }
+    .ml-auto { margin-left: auto; }
+    .mx-auto { margin-left: auto; margin-right: auto; }
+    .ml-1 { margin-left: 0.25rem; }
+    .min-w-0 { min-width: 0; }
+    .pointer-events-none { pointer-events: none; }
+    .cursor-pointer { cursor: pointer; }
+
+    /* ---- size ---- */
+    .w-full { width: 100%; }
+    .w-4 { width: 1rem; }
+    .w-8 { width: 2rem; }
+    .w-16 { width: 4rem; }
+    .h-full { height: 100%; }
+    .h-screen { height: 100vh; }
+    .h-16 { height: 4rem; }
+    .h-\[50vh\] { height: 50vh; }
+    .aspect-square { aspect-ratio: 1 / 1; }
+    .max-w-lg { max-width: 32rem; }
+    .max-w-none { max-width: none; }
+
+    /* ---- overflow ---- */
+    .overflow-hidden { overflow: hidden; }
+    .overflow-y-auto { overflow-y: auto; }
+
+    /* ---- spacing ---- */
+    .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+    .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+    .pb-4 { padding-bottom: 1rem; }
+    .pb-12 { padding-bottom: 3rem; }
+    .pb-24 { padding-bottom: 6rem; }
+    .pr-4 { padding-right: 1rem; }
+    .p-3 { padding: 0.75rem; }
+    .mb-4 { margin-bottom: 1rem; }
+    .mb-8 { margin-bottom: 2rem; }
+    .mt-1 { margin-top: 0.25rem; }
+    .mt-2 { margin-top: 0.5rem; }
+    .mt-4 { margin-top: 1rem; }
+
+    /* ---- typography ---- */
+    .font-sans { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
+    .font-serif { font-family: ui-serif, Georgia, Cambria, serif; }
+    .antialiased { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    .text-xs { font-size: 0.75rem; line-height: 1rem; }
+    .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+    .text-base { font-size: 1rem; line-height: 1.5rem; }
+    .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+    .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+    .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+    .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+    .font-medium { font-weight: 500; }
+    .font-semibold { font-weight: 600; }
+    .tracking-wide { letter-spacing: 0.025em; }
+    .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .text-right { text-align: right; }
+    .whitespace-pre-line { white-space: pre-line; }
+    .leading-relaxed { line-height: 1.625; }
+
+    /* ---- color ---- */
+    .bg-zinc-950 { background-color: #09090b; }
+    .bg-zinc-900 { background-color: #18181b; }
+    .bg-white { background-color: #ffffff; }
+    .bg-white\/10 { background-color: rgba(255,255,255,0.1); }
+    .bg-zinc-950\/80 { background-color: rgba(9,9,11,0.8); }
+    .text-zinc-100 { color: #f4f4f5; }
+    .text-zinc-300 { color: #d4d4d8; }
+    .text-zinc-400 { color: #a1a1aa; }
+    .text-zinc-500 { color: #71717a; }
+    .text-white { color: #ffffff; }
+    .text-black { color: #000000; }
+    .border-zinc-800 { border-color: #27272a; }
+
+    /* ---- border ---- */
+    .border-b { border-bottom-width: 1px; border-bottom-style: solid; }
+    .rounded-lg { border-radius: 0.5rem; }
+    .rounded-md { border-radius: 0.375rem; }
+    .rounded-full { border-radius: 9999px; }
+
+    /* ---- shadow ---- */
+    .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); }
+    .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6); }
+
+    /* ---- effects ---- */
+    .backdrop-blur-3xl { backdrop-filter: blur(64px); -webkit-backdrop-filter: blur(64px); }
+    .opacity-0 { opacity: 0; }
+
+    /* ---- background ---- */
+    .bg-cover { background-size: cover; }
+    .bg-center { background-position: center; }
+
+    /* ---- transitions ---- */
+    .transition-all { transition: all 150ms cubic-bezier(0.4,0,0.2,1); }
+    .transition-colors { transition: color 150ms cubic-bezier(0.4,0,0.2,1), background-color 150ms cubic-bezier(0.4,0,0.2,1), border-color 150ms cubic-bezier(0.4,0,0.2,1); }
+    .transition-transform { transition: transform 150ms cubic-bezier(0.4,0,0.2,1); }
+    .duration-500 { transition-duration: 500ms; }
+    .duration-700 { transition-duration: 700ms; }
+    .duration-1000 { transition-duration: 1000ms; }
+
+    /* ---- prose ---- */
+    .prose { max-width: 65ch; line-height: 1.75; }
+    .prose.max-w-none, .max-w-none.prose { max-width: none; }
+
+    /* ---- hover ---- */
+    .hover\:text-zinc-300:hover { color: #d4d4d8; }
+    .hover\:text-zinc-100:hover { color: #f4f4f5; }
+    .hover\:text-white:hover { color: #ffffff; }
+    .hover\:scale-105:hover { transform: scale(1.05); }
+    .hover\:bg-white\/5:hover { background-color: rgba(255,255,255,0.05); }
+
+    /* ---- group hover ---- */
+    .group:hover .group-hover\:scale-105 { transform: scale(1.05); }
+    .group:hover .group-hover\:opacity-80 { opacity: 0.8; }
+    .group:hover .group-hover\:text-white { color: #ffffff; }
+    .group:hover .group-hover\:text-zinc-300 { color: #d4d4d8; }
+
+    /* ---- responsive ---- */
+    @media (min-width: 640px) { .sm\:block { display: block; } }
+    @media (min-width: 768px) {
+      .md\:px-12 { padding-left: 3rem; padding-right: 3rem; }
+      .md\:py-10 { padding-top: 2.5rem; padding-bottom: 2.5rem; }
+      .md\:w-1\/2 { width: 50%; }
+      .md\:flex-row { flex-direction: row; }
+      .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .md\:gap-8 { gap: 2rem; }
+      .md\:gap-16 { gap: 4rem; }
+      .md\:text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+      .md\:h-auto { height: auto; }
+    }
+    @media (min-width: 1024px) {
+      .lg\:w-2\/5 { width: 40%; }
+      .lg\:w-3\/5 { width: 60%; }
+      .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    @media (min-width: 1280px) { .xl\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+
+    input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; height: 12px; width: 12px; border-radius: 50%;
+      background: #ffffff; cursor: pointer; margin-top: -4px;
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%; height: 4px; cursor: pointer; background: #52525b; border-radius: 2px;
+    }
+    input[type=range]:focus { outline: none; }
+
+    /* ---- picker & loading ---- */
+    #picker-view {
+      display: flex;
+      flex: 1;
+      align-items: center;
+      justify-content: center;
+    }
+    .drop-zone {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      text-align: center;
+      padding: 3rem;
+    }
+    .drop-zone svg { opacity: 0.3; }
+    .drop-zone h2 { font-size: 1.25rem; font-weight: 500; color: #d4d4d8; }
+    .drop-zone p { font-size: 0.875rem; color: #52525b; }
+    .open-btn {
+      background: #ffffff;
+      color: #09090b;
+      padding: 0.625rem 1.5rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      transition: opacity 0.15s;
+    }
+    .open-btn:hover { opacity: 0.85; }
+    #loading-view {
+      display: flex;
+      flex: 1;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    #loading-text { color: #71717a; font-size: 0.875rem; }
+    .open-small {
+      background: none;
+      border: 1px solid #3f3f46;
+      color: #a1a1aa;
+      padding: 0.375rem 0.875rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .open-small:hover { color: #f4f4f5; border-color: #71717a; }
+  </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 font-sans antialiased overflow-hidden">
+
+  <div id="ambient-bg" class="fixed inset-0 z-0 bg-cover bg-center transition-all duration-1000 opacity-0 pointer-events-none"></div>
+  <div class="fixed inset-0 z-0 bg-zinc-950\/80 backdrop-blur-3xl pointer-events-none"></div>
+
+  <main class="relative z-10 w-full h-screen flex flex-col">
+
+    <header class="px-6 py-8 md:px-12 md:py-10 flex justify-between items-center shrink-0">
+      <h1 id="app-title" class="text-xl font-medium tracking-wide cursor-pointer hover:text-zinc-300 transition-colors">Local.</h1>
+      <div class="flex items-center gap-4">
+        <button id="back-btn" class="hidden text-sm font-medium text-zinc-400 hover:text-zinc-100 transition-colors flex items-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Library
+        </button>
+        <button id="open-btn" class="open-small hidden" onclick="document.getElementById('folder-input').click()">Open folder</button>
+      </div>
+      <input type="file" id="folder-input" class="hidden" webkitdirectory multiple accept=".mp3">
+    </header>
+
+    <!-- Picker state -->
+    <section id="picker-view">
+      <div class="drop-zone">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+        </svg>
+        <h2>Open a folder of MP3 files</h2>
+        <p>Reads ID3v2 tags — including chapters from<br>embedded albums produced by embed-id3.js</p>
+        <button class="open-btn" onclick="document.getElementById('folder-input').click()">Open folder</button>
+      </div>
+    </section>
+
+    <!-- Loading state -->
+    <section id="loading-view" class="hidden">
+      <p id="loading-text">Parsing files...</p>
+    </section>
+
+    <!-- Library view -->
+    <section id="library-view" class="hidden flex-1 overflow-y-auto px-6 md:px-12 pb-24">
+      <div id="album-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-8"></div>
+    </section>
+
+    <!-- Player view -->
+    <section id="player-view" class="hidden flex-1 flex-col md:flex-row overflow-hidden px-6 md:px-12 pb-12 gap-8 md:gap-16">
+
+      <div class="w-full md:w-1/2 lg:w-2/5 flex flex-col justify-center max-w-lg mx-auto shrink-0">
+        <div class="relative w-full aspect-square rounded-lg overflow-hidden shadow-2xl shadow-black/60 mb-8 group">
+          <img id="now-playing-art" src="" alt="Album Art" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+        </div>
+
+        <div class="flex flex-col gap-4">
+          <div class="flex justify-between items-end">
+            <div class="min-w-0">
+              <h2 id="now-playing-title" class="text-2xl md:text-3xl font-semibold truncate">Track Title</h2>
+              <p id="now-playing-artist" class="text-zinc-400 text-lg truncate mt-1">Artist Name</p>
+            </div>
+          </div>
+
+          <div class="w-full flex items-center gap-4 mt-2">
+            <span id="time-current" class="text-xs text-zinc-500 font-medium w-8 text-right">0:00</span>
+            <input type="range" id="progress-bar" min="0" max="100" value="0" step="0.1" class="flex-1">
+            <span id="time-total" class="text-xs text-zinc-500 font-medium w-8">0:00</span>
+          </div>
+
+          <div class="flex items-center justify-center gap-8 mt-4">
+            <button id="btn-prev" class="text-zinc-400 hover:text-white transition-colors">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+            </button>
+            <button id="btn-play-pause" class="w-16 h-16 flex items-center justify-center bg-white text-black rounded-full hover:scale-105 transition-transform">
+              <svg id="icon-play" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" class="ml-1"><path d="M8 5v14l11-7z"/></svg>
+              <svg id="icon-pause" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" class="hidden"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+            <button id="btn-next" class="text-zinc-400 hover:text-white transition-colors">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="w-full md:w-1/2 lg:w-3/5 flex flex-col h-[50vh] md:h-auto overflow-hidden">
+        <div class="flex items-center gap-6 border-b border-zinc-800 pb-4 mb-4 shrink-0">
+          <button id="tab-tracks" class="text-lg font-medium text-white transition-colors">Tracks</button>
+          <button id="tab-context" class="text-lg font-medium text-zinc-500 hover:text-zinc-300 transition-colors">Info</button>
+          <div class="ml-auto text-right hidden sm:block">
+            <p id="album-info-title" class="text-sm font-medium text-zinc-300">Album Name</p>
+            <p id="album-info-year" class="text-xs text-zinc-500">—</p>
+          </div>
+        </div>
+
+        <div id="panel-tracks" class="flex-1 overflow-y-auto pr-4">
+          <ul id="track-list" class="flex flex-col gap-2"></ul>
+        </div>
+
+        <div id="panel-context" class="hidden flex-1 overflow-y-auto pr-4">
+          <div class="prose prose-invert prose-zinc max-w-none">
+            <p id="context-content" class="text-zinc-300 text-lg leading-relaxed whitespace-pre-line font-serif"></p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <script type="module">
+    import createPlayer from './player.js';
+    import { formatTime, trackProgress, seekFromClick, setupKeyboard } from './skin.js';
+
+    // ---- ID3v2 parser ----
+
+    function decodeText(bytes) {
+      if (!bytes.length) return '';
+      const enc = bytes[0];
+      const rest = bytes.subarray(1);
+      try {
+        if (enc === 0) return new TextDecoder('iso-8859-1').decode(rest).replace(/\0+$/, '').trim();
+        if (enc === 1) return new TextDecoder('utf-16').decode(rest).replace(/\0+$/, '').trim();
+        if (enc === 2) return new TextDecoder('utf-16be').decode(rest).replace(/\0+$/, '').trim();
+        if (enc === 3) return new TextDecoder('utf-8').decode(rest).replace(/\0+$/, '').trim();
+      } catch {}
+      return '';
+    }
+
+    function u32(bytes, i) {
+      return ((bytes[i] << 24) | (bytes[i+1] << 16) | (bytes[i+2] << 8) | bytes[i+3]) >>> 0;
+    }
+
+    function parseAPIC(bytes) {
+      const enc = bytes[0];
+      let i = 1;
+      const mimeStart = i;
+      while (i < bytes.length && bytes[i] !== 0) i++;
+      const mime = new TextDecoder('iso-8859-1').decode(bytes.subarray(mimeStart, i)) || 'image/jpeg';
+      i++; // past MIME null
+      i++; // picture type byte
+      // skip description (null-terminated, UTF-16 uses double null)
+      if (enc === 1 || enc === 2) {
+        while (i + 1 < bytes.length && (bytes[i] !== 0 || bytes[i+1] !== 0)) i += 2;
+        i += 2;
+      } else {
+        while (i < bytes.length && bytes[i] !== 0) i++;
+        i++;
+      }
+      if (i >= bytes.length) return null;
+      return URL.createObjectURL(new Blob([bytes.subarray(i)], { type: mime }));
+    }
+
+    function parseCHAP(bytes) {
+      let i = 0;
+      while (i < bytes.length && bytes[i] !== 0) i++;
+      i++; // past element-id null terminator
+      if (i + 16 > bytes.length) return null;
+      const startMs = u32(bytes, i);
+      i += 16; // skip startMs, endMs, startOffset, endOffset (4 × uint32)
+      let title = '';
+      while (i + 10 <= bytes.length) {
+        const subId = String.fromCharCode(bytes[i], bytes[i+1], bytes[i+2], bytes[i+3]);
+        const subSize = u32(bytes, i + 4);
+        if (i + 10 + subSize > bytes.length) break;
+        if (subId === 'TIT2') title = decodeText(bytes.subarray(i + 10, i + 10 + subSize));
+        i += 10 + subSize;
+      }
+      return { startMs, title };
+    }
+
+    async function parseID3(file) {
+      const tags = { title: null, artist: null, album: null, year: null, cover: null, chapters: [] };
+
+      // Read first 10 bytes to get header + tag size
+      const headerBytes = new Uint8Array(await file.slice(0, 10).arrayBuffer());
+      if (headerBytes[0] !== 0x49 || headerBytes[1] !== 0x44 || headerBytes[2] !== 0x33) return tags;
+
+      const version = headerBytes[3]; // 3 = ID3v2.3, 4 = ID3v2.4
+      if (version < 3 || version > 4) return tags;
+
+      const tagSize =
+        ((headerBytes[6] & 0x7F) << 21) |
+        ((headerBytes[7] & 0x7F) << 14) |
+        ((headerBytes[8] & 0x7F) << 7)  |
+         (headerBytes[9] & 0x7F);
+
+      const bytes = new Uint8Array(await file.slice(0, tagSize + 10).arrayBuffer());
+
+      let pos = 10;
+      while (pos + 10 <= tagSize + 10) {
+        const id = String.fromCharCode(bytes[pos], bytes[pos+1], bytes[pos+2], bytes[pos+3]);
+        if (id === '\0\0\0\0') break;
+
+        // ID3v2.4 uses syncsafe frame sizes; ID3v2.3 uses plain uint32
+        const frameSize = version === 4
+          ? ((bytes[pos+4] & 0x7F) << 21) | ((bytes[pos+5] & 0x7F) << 14) | ((bytes[pos+6] & 0x7F) << 7) | (bytes[pos+7] & 0x7F)
+          : u32(bytes, pos + 4);
+
+        if (frameSize <= 0 || pos + 10 + frameSize > bytes.length) break;
+        const payload = bytes.subarray(pos + 10, pos + 10 + frameSize);
+        pos += 10 + frameSize;
+
+        try {
+          switch (id) {
+            case 'TIT2': tags.title  = decodeText(payload); break;
+            case 'TPE1': tags.artist = decodeText(payload); break;
+            case 'TPE2': if (!tags.artist) tags.artist = decodeText(payload); break;
+            case 'TALB': tags.album  = decodeText(payload); break;
+            case 'TYER': case 'TDRC': {
+              const y = parseInt(decodeText(payload).slice(0, 4), 10);
+              if (!isNaN(y)) tags.year = y;
+              break;
+            }
+            case 'APIC': if (!tags.cover) tags.cover = parseAPIC(payload); break;
+            case 'CHAP': { const ch = parseCHAP(payload); if (ch) tags.chapters.push(ch); break; }
+          }
+        } catch {}
+      }
+
+      return tags;
+    }
+
+    // ---- File handling ----
+
+    // Prefer .embedded.mp3 when both exist for the same stem
+    function filterFiles(fileList) {
+      const all = Array.from(fileList).filter(f => /\.mp3$/i.test(f.name));
+      const embeddedStems = new Set(
+        all
+          .filter(f => /\.embedded\.mp3$/i.test(f.name))
+          .map(f => f.name.replace(/\.embedded\.mp3$/i, ''))
+      );
+      return all.filter(f =>
+        /\.embedded\.mp3$/i.test(f.name) ||
+        !embeddedStems.has(f.name.replace(/\.mp3$/i, ''))
+      );
+    }
+
+    function makeAlbum(file, tags) {
+      const stem = file.name.replace(/\.embedded\.mp3$/i, '').replace(/\.mp3$/i, '');
+      const [, fallbackArtist, fallbackTitle] = stem.match(/^(.+?) - (.+?)(?:\s*\(\d+\))?$/) || [];
+
+      const tracks = tags.chapters.length > 0
+        ? tags.chapters
+            .sort((a, b) => a.startMs - b.startMs)
+            .map(ch => ({ title: ch.title || '—', start: Math.round(ch.startMs / 1000) }))
+        : [{ title: tags.album || tags.title || stem, start: 0 }];
+
+      return {
+        id: stem,
+        title: tags.album || tags.title || fallbackTitle || stem,
+        artist: tags.artist || fallbackArtist || 'Unknown',
+        year: tags.year ?? null,
+        cover: tags.cover ?? null,
+        audio: URL.createObjectURL(file),
+        tracks,
+      };
+    }
+
+    // ---- DOM refs ----
+
+    const $ = id => document.getElementById(id);
+    const els = {
+      folderInput:    $('folder-input'),
+      openBtn:        $('open-btn'),
+      loadingText:    $('loading-text'),
+      albumGrid:      $('album-grid'),
+      ambientBg:      $('ambient-bg'),
+      backBtn:        $('back-btn'),
+      appTitle:       $('app-title'),
+      art:            $('now-playing-art'),
+      title:          $('now-playing-title'),
+      artist:         $('now-playing-artist'),
+      albumInfoTitle: $('album-info-title'),
+      albumInfoYear:  $('album-info-year'),
+      trackList:      $('track-list'),
+      panelTracks:    $('panel-tracks'),
+      panelContext:   $('panel-context'),
+      contextContent: $('context-content'),
+      btnPlayPause:   $('btn-play-pause'),
+      iconPlay:       $('icon-play'),
+      iconPause:      $('icon-pause'),
+      btnPrev:        $('btn-prev'),
+      btnNext:        $('btn-next'),
+      progressBar:    $('progress-bar'),
+      timeCurrent:    $('time-current'),
+      timeTotal:      $('time-total'),
+      tabTracks:      $('tab-tracks'),
+      tabContext:      $('tab-context'),
+    };
+
+    // ---- State ----
+
+    let player = null;
+    let isScrubbing = false;
+    let loadedAlbums = [];
+
+    // ---- View management ----
+
+    function setView(name) {
+      for (const id of ['picker-view', 'loading-view', 'library-view', 'player-view']) {
+        const el = $(id);
+        const active = id === name;
+        el.classList.toggle('hidden', !active);
+        if (id === 'player-view') el.classList.toggle('flex', active);
+        if (id === 'loading-view') el.classList.toggle('flex', active);
+        if (id === 'picker-view') el.style.display = active ? 'flex' : 'none';
+      }
+    }
+
+    // ---- UI helpers (same pattern as Aura) ----
+
+    function setPlayIcon(playing) {
+      els.iconPlay.classList.toggle('hidden', playing);
+      els.iconPause.classList.toggle('hidden', !playing);
+    }
+
+    function switchTab(name) {
+      const isTracks = name === 'tracks';
+      els.tabTracks.classList.toggle('text-white', isTracks);
+      els.tabTracks.classList.toggle('text-zinc-500', !isTracks);
+      els.tabContext.classList.toggle('text-white', !isTracks);
+      els.tabContext.classList.toggle('text-zinc-500', isTracks);
+      els.panelTracks.classList.toggle('hidden', !isTracks);
+      els.panelContext.classList.toggle('hidden', isTracks);
+    }
+
+    function showLibrary() {
+      setView('library-view');
+      els.backBtn.classList.add('hidden');
+      els.ambientBg.style.opacity = '0';
+    }
+
+    function showPlayerView(album) {
+      setView('player-view');
+      els.backBtn.classList.remove('hidden');
+      els.art.src = album.cover || '';
+      els.albumInfoTitle.textContent = album.title;
+      els.albumInfoYear.textContent = album.year ?? '';
+      els.ambientBg.style.backgroundImage = album.cover ? `url('${album.cover}')` : '';
+      els.ambientBg.style.opacity = album.cover ? '0.4' : '0';
+      els.artist.textContent = album.artist;
+      els.contextContent.textContent = `${album.title}\n${album.artist}${album.year ? ` · ${album.year}` : ''}`;
+      switchTab('tracks');
+    }
+
+    function renderTracklist(album, activeIndex) {
+      els.trackList.innerHTML = album.tracks.map((track, i) => {
+        const nextStart = album.tracks[i + 1]?.start;
+        const durLabel = nextStart == null ? '--:--' : formatTime(nextStart - track.start);
+        const isActive = i === activeIndex;
+        return `
+          <li data-i="${i}" class="group flex items-center justify-between p-3 rounded-md cursor-pointer transition-colors ${isActive ? 'bg-white/10' : 'hover:bg-white/5'}">
+            <div class="flex items-center gap-4">
+              <span class="text-sm w-4 text-right ${isActive ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}">${i + 1}</span>
+              <span class="text-base font-medium ${isActive ? 'text-white' : 'text-zinc-300 group-hover:text-white'}">${track.title}</span>
+            </div>
+            <span class="text-sm text-zinc-500">${durLabel}</span>
+          </li>
+        `;
+      }).join('');
+
+      els.trackList.querySelectorAll('li[data-i]').forEach(li => {
+        li.addEventListener('click', () => {
+          player.seekToTrack(Number(li.dataset.i));
+          if (!player.isPlaying) player.play();
+        });
+      });
+    }
+
+    function renderLibrary(albums) {
+      els.albumGrid.innerHTML = albums.map(album => `
+        <div data-id="${album.id}" class="group cursor-pointer flex flex-col gap-3">
+          <div class="w-full aspect-square overflow-hidden rounded-lg shadow-lg bg-zinc-900">
+            <img src="${album.cover || ''}" alt="${album.title}"
+                 class="w-full h-full object-cover transition-all duration-500 group-hover:scale-105 group-hover:opacity-80"
+                 onerror="this.removeAttribute('src')">
+          </div>
+          <div>
+            <h3 class="text-base font-medium text-zinc-100 truncate group-hover:text-white">${album.title}</h3>
+            <p class="text-sm text-zinc-500 truncate">${album.artist}</p>
+          </div>
+        </div>
+      `).join('');
+
+      els.albumGrid.querySelectorAll('[data-id]').forEach(card => {
+        card.addEventListener('click', () => {
+          const album = loadedAlbums.find(a => a.id === card.dataset.id);
+          if (!album) return;
+          player.loadAlbum(album);
+          player.play();
+        });
+      });
+    }
+
+    // ---- Player events ----
+
+    function bindPlayerEvents() {
+      player.on('albumloaded', ({ album }) => showPlayerView(album));
+
+      player.on('trackchange', ({ album, trackIndex, track }) => {
+        renderTracklist(album, trackIndex);
+        els.title.textContent = track.title;
+      });
+
+      player.on('play',  () => setPlayIcon(true));
+      player.on('pause', () => setPlayIcon(false));
+
+      player.on('timeupdate', () => {
+        if (!player.currentAlbum) return;
+        const { trackPos, trackDur, pct } = trackProgress(player);
+        els.timeCurrent.textContent = formatTime(trackPos);
+        els.timeTotal.textContent = formatTime(trackDur);
+        if (!isScrubbing) els.progressBar.value = pct;
+      });
+
+      els.btnPlayPause.addEventListener('click', () => { if (player.currentAlbum) player.toggle(); });
+      els.btnPrev.addEventListener('click', () => player.prevTrack());
+      els.btnNext.addEventListener('click', () => player.nextTrack());
+      els.backBtn.addEventListener('click', showLibrary);
+      els.appTitle.addEventListener('click', () => { if (loadedAlbums.length) showLibrary(); });
+      els.tabTracks.addEventListener('click', () => switchTab('tracks'));
+      els.tabContext.addEventListener('click', () => switchTab('context'));
+
+      els.progressBar.addEventListener('mousedown',  () => { isScrubbing = true; });
+      els.progressBar.addEventListener('touchstart', () => { isScrubbing = true; }, { passive: true });
+
+      function applySeek() {
+        isScrubbing = false;
+        seekFromClick({ type: 'input' }, els.progressBar, player);
+      }
+      els.progressBar.addEventListener('mouseup',  applySeek);
+      els.progressBar.addEventListener('touchend', applySeek);
+
+      setupKeyboard(player);
+    }
+
+    // ---- File load handler ----
+
+    async function loadFolder(fileList) {
+      const files = filterFiles(fileList);
+      if (!files.length) return;
+
+      setView('loading-view');
+      els.openBtn.classList.add('hidden');
+
+      const albums = [];
+      for (let i = 0; i < files.length; i++) {
+        els.loadingText.textContent = `Parsing ${i + 1} of ${files.length}...`;
+        const tags = await parseID3(files[i]);
+        albums.push(makeAlbum(files[i], tags));
+      }
+
+      albums.sort((a, b) => a.title.localeCompare(b.title));
+      loadedAlbums = albums;
+
+      // Replace player if already running
+      player = createPlayer(albums);
+      bindPlayerEvents();
+      renderLibrary(albums);
+
+      els.openBtn.classList.remove('hidden');
+
+      if (player.currentAlbum) {
+        showPlayerView(player.currentAlbum);
+        renderTracklist(player.currentAlbum, player.currentTrackIndex);
+        els.title.textContent = player.currentAlbum.tracks[player.currentTrackIndex].title;
+        setPlayIcon(player.isPlaying);
+      } else {
+        setView('library-view');
+      }
+    }
+
+    els.folderInput.addEventListener('change', e => loadFolder(e.target.files));
+
+    // Reset file input so the same folder can be re-selected
+    els.folderInput.addEventListener('click', () => { els.folderInput.value = ''; });
+  </script>
+</body>
+</html>
