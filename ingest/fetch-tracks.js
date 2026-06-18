@@ -183,29 +183,6 @@ function writeOut(id, data) {
 }
 
 async function processAlbum(album) {
-  if (album.singleTrack) {
-    const out = {
-      id: album.id,
-      source: 'manual',
-      needsManualReview: false,
-      tracks: [{ title: album.title, start: 0, source: 'manual', confidence: 'high' }]
-    };
-    writeOut(album.id, out);
-    return { album, trackCount: 1, expected: 1, source: 'manual', review: false };
-  }
-
-  if (album.manualTracks) {
-    const silences = trySilences(album);
-    const boundary = silences[0] ?? null;
-    const [t1, t2] = album.manualTrackTitles;
-    const tracks = [
-      { title: t1, start: 0, source: 'manual', confidence: 'high' },
-      { title: t2, start: boundary ?? 0, source: boundary === null ? 'manual' : 'detected', confidence: 'high' }
-    ];
-    writeOut(album.id, { id: album.id, source: 'manual', needsManualReview: boundary === null, tracks });
-    return { album, trackCount: 2, expected: 2, source: 'manual', review: boundary === null };
-  }
-
   const apiResult = await fetchApiTracks(album);
 
   if (!apiResult || apiResult.tracks.length === 0) {

@@ -8,7 +8,6 @@ const MEDIA_DIR = join(ROOT, 'media');
 const DATA_DIR = join(__dirname, 'cache');
 const REPORT_PATH = join(DATA_DIR, 'covers-report.json');
 const MB_UA = 'zicmu/1.0 (personal music player)';
-const SKIP_ID = 'bob-marley-and-the-wailers_one-love-and-redemption-song';
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -135,10 +134,6 @@ async function tryITunes(artist, title, year) {
 // --- main per-album ---
 
 async function processAlbum(album) {
-  if (album.id === SKIP_ID) {
-    return { id: album.id, status: 'skipped', reason: 'manual' };
-  }
-
   // strip side indicators for search
   const searchTitle = album.title.replace(/[-–]\s*side\s+[ab]$/i, '').trim();
 
