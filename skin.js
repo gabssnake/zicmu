@@ -6,7 +6,7 @@
 //
 // All functions are pure or have no DOM opinions — skins stay in control of their markup.
 
-import createPlayer from '../player.js';
+import createPlayer from './player.js';
 
 // Bootstrap: fetch albums.json, create the player, return { player, albums }.
 // Every skin calls these two lines; initPlayer() wraps them into one.

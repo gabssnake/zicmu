@@ -8,7 +8,7 @@ Hosted on GitHub Pages. Audio files are served as static assets with HTTP range 
 
 `player.js` is a decoupled audio engine: it exposes a small event/command API and owns nothing visual. Skins are self-contained HTML files that subscribe to player events and call player commands. They can look like anything.
 
-`skins/skin.js` provides shared utilities (time formatting, progress math, keyboard shortcuts) that skins can optionally import.
+`skin.js` provides shared utilities (time formatting, progress math, keyboard shortcuts) that skins can optionally import.
 
 ## Skins
 
@@ -52,7 +52,7 @@ See `ingest/INGEST.md` for the full pipeline. Short version:
 
 ```
 player.js             Audio engine (events, commands, state)
-skins/skin.js         Shared skin utilities
+skin.js               Shared skin utilities
 albums.json           Album metadata + track timestamps (generated)
 serve.js              Local dev server with range request support
 index.html            Skin gallery / launcher
