@@ -183,6 +183,10 @@ function writeOut(id, data) {
 }
 
 async function processAlbum(album) {
+  if (existsSync(join(TRACKS_DIR, `${album.id}.json`))) {
+    return { album, skipped: true };
+  }
+
   const apiResult = await fetchApiTracks(album);
 
   if (!apiResult || apiResult.tracks.length === 0) {
@@ -226,16 +230,22 @@ for (const album of ALBUMS) {
   try {
     const r = await processAlbum(album);
     results.push(r);
-    const exp = r.expected === '?' ? '?' : r.expected;
-    console.log(`${album.id.padEnd(50)} ${r.trackCount}/${exp} tracks`);
+    if (r.skipped) {
+      console.log(`${album.id.padEnd(50)} skipped (cached)`);
+    } else {
+      const exp = r.expected === '?' ? '?' : r.expected;
+      console.log(`${album.id.padEnd(50)} ${r.trackCount}/${exp} tracks`);
+    }
   } catch (e) {
     console.error(`failed ${album.id}: ${e.message}`);
     results.push({ album, trackCount: 0, expected: '?', source: 'error', review: true });
   }
 }
 
-console.log('\n--- summary ---');
-for (const r of results) {
+const fetched = results.filter(r => !r.skipped && r.source !== 'error');
+const skipped = results.filter(r => r.skipped);
+console.log(`\n--- summary: ${fetched.length} fetched, ${skipped.length} skipped (cached) ---`);
+for (const r of fetched) {
   const exp = r.expected === '?' ? '?' : r.expected;
   console.log(
     `${r.album.id.padEnd(50)} ${r.trackCount}/${exp} tracks`.padEnd(65) +

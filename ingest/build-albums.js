@@ -12,7 +12,13 @@ const coversReport = JSON.parse(readFileSync(join(DATA_DIR, 'covers-report.json'
 
 const coversByid = Object.fromEntries(coversReport.map(r => [r.id, r]));
 
+const outPath = join(ROOT, 'albums.json');
+const existing = existsSync(outPath) ? JSON.parse(readFileSync(outPath, 'utf8')) : [];
+const existingById = Object.fromEntries(existing.map(a => [a.id, a]));
+
 const albums = rawAlbums.map(album => {
+  if (existingById[album.id]) return existingById[album.id];
+
   const coverRecord = coversByid[album.id];
   const tracksPath = join(DATA_DIR, 'tracks', `${album.id}.json`);
   const tracksData = existsSync(tracksPath)
@@ -44,7 +50,6 @@ const albums = rawAlbums.map(album => {
   return entry;
 });
 
-const outPath = join(ROOT, 'albums.json');
 writeFileSync(outPath, JSON.stringify(albums, null, 2));
 
 // summary

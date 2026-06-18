@@ -1,4 +1,4 @@
-import { writeFileSync, readFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, readFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -134,6 +134,10 @@ async function tryITunes(artist, title, year) {
 // --- main per-album ---
 
 async function processAlbum(album) {
+  if (existsSync(join(MEDIA_DIR, `${album.id}.jpg`))) {
+    return { id: album.id, status: 'exists' };
+  }
+
   // strip side indicators for search
   const searchTitle = album.title.replace(/[-–]\s*side\s+[ab]$/i, '').trim();
 
