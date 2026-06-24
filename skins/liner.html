@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <style>
         /* ---- base ---- */
-        *, *::before, *::after { box-sizing: border-box; --tw-translate-x: 0; --tw-translate-y: 0; }
+        *, *::before, *::after { box-sizing: border-box; --translate-x: 0; --translate-y: 0; }
 
         /* custom colors */
         :root {
@@ -64,16 +64,16 @@
 
         /* ---- transforms (composed via CSS vars) ---- */
         .-translate-x-1\/2 {
-            --tw-translate-x: -50%;
-            transform: translateX(var(--tw-translate-x)) translateY(var(--tw-translate-y));
+            --translate-x: -50%;
+            transform: translateX(var(--translate-x)) translateY(var(--translate-y));
         }
         .translate-y-24 {
-            --tw-translate-y: 6rem;
-            transform: translateX(var(--tw-translate-x)) translateY(var(--tw-translate-y));
+            --translate-y: 6rem;
+            transform: translateX(var(--translate-x)) translateY(var(--translate-y));
         }
         .translate-y-0 {
-            --tw-translate-y: 0px;
-            transform: translateX(var(--tw-translate-x)) translateY(var(--tw-translate-y));
+            --translate-y: 0px;
+            transform: translateX(var(--translate-x)) translateY(var(--translate-y));
         }
 
         /* ---- size ---- */
