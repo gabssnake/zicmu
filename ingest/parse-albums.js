@@ -36,7 +36,7 @@ function parseFilename(filename) {
 }
 
 const files = readdirSync(MEDIA_DIR)
-  .filter(f => f.endsWith('.mp3'))
+  .filter(f => f.endsWith('.mp3') && !f.endsWith('.embedded.mp3'))
   .sort();
 
 const albums = files.map(f => {
