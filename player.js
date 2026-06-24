@@ -1,4 +1,4 @@
-// Audio engine — decoupled from any UI.
+// Audio engine, decoupled from any UI
 //
 // Usage:
 //   import createPlayer from './player.js'

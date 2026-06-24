@@ -71,7 +71,7 @@ This lists albums flagged for manual timestamp review. A flag means the silence 
 
 ## Refreshing an existing album
 
-`build-albums.js` skips albums that already have a `media/<id>.json` to preserve manual edits. To force a full rebuild for a specific album — for example after correcting its cover or track timestamps — delete its record and re-run:
+`build-albums.js` skips albums that already have a `media/<id>.json` to preserve manual edits. To force a full rebuild for a specific album, for example after correcting its cover or track timestamps, delete its record and re-run:
 
 ```bash
 rm media/"<id>.json"

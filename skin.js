@@ -4,7 +4,7 @@
 //   import { initPlayer, formatTime, trackDuration, trackProgress,
 //            seekFromClick, setupKeyboard } from './skin.js';
 //
-// All functions are pure or have no DOM opinions — skins stay in control of their markup.
+// All functions are pure or have no DOM opinions, skins stay in control of their markup.
 
 import createPlayer from './player.js';
 

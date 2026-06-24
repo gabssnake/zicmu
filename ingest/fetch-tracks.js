@@ -52,7 +52,7 @@ function crossReference(apiTracks, silences) {
 
 async function fetchMusicBrainz(album) {
   const headers = { 'User-Agent': 'zicmu/1.0 (personal music player)' };
-  // unquoted query — more permissive, avoids Broadcast-only results
+  // unquoted query, more permissive, avoids Broadcast-only results
   const q = `artist:${album.artist} AND release:${album.title}`;
   const searchUrl = `https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(q)}&limit=10&fmt=json`;
 

@@ -1,6 +1,6 @@
 # zicmu
 
-A static music player for a personal MP3 collection. No backend, no database — just a JSON file, an audio engine, and interchangeable skins.
+A static music player for a personal MP3 collection. No backend, no database, just a JSON file, an audio engine, and interchangeable skins.
 
 ## How it works
 
@@ -20,7 +20,7 @@ Nine skins live in `skins/`. Open `index.html` to browse them.
 | Winamp | skins/winamp.html | Retro compact, LED display, EQ bars |
 | Stream | skins/stream.html | Full-screen blurred album art |
 | Neo | skins/neo.html | Neomorphic soft UI, rotating cover |
-| Local | skins/local.html | Load any folder of MP3s — reads ID3v2 tags directly, no albums.json needed |
+| Local | skins/local.html | Load any folder of MP3s, reads ID3v2 tags directly, no albums.json needed |
 
 See `skins/SKINS.md` for the full skin contract.
 
@@ -30,7 +30,7 @@ See `skins/SKINS.md` for the full skin contract.
 node serve.js
 ```
 
-Opens at `http://localhost:8765`. The custom server is required — standard static servers don't support HTTP range requests, which breaks audio seeking.
+Opens at `http://localhost:8765`. The custom server is required, standard static servers don't support HTTP range requests, which breaks audio seeking.
 
 ## Adding albums
 
@@ -55,5 +55,5 @@ serve.js              Local dev server with range request support
 index.html            Skin gallery / launcher
 skins/                One HTML file per skin; skins/SKINS.md documents the contract
 ingest/               Scripts for adding new media; ingest/INGEST.md has the guide
-ingest/cache/         Intermediate data (throwaway — albums-raw.json, track timestamps, cover report)
+ingest/cache/         Intermediate data (throwaway, albums-raw.json, track timestamps, cover report)
 ```
