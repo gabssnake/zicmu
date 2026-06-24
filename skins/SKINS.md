@@ -1,6 +1,6 @@
 # Skin contract
 
-A zicmu skin is a self-contained HTML file in `skins/`. It imports the audio engine and renders whatever UI it wants. The engine and skin never share DOM — they communicate only through events and commands.
+A zicmu skin is a self-contained HTML file in `skins/`. It imports the audio engine and renders whatever UI it wants. The engine and skin never share DOM, they communicate only through events and commands.
 
 ## Required setup
 

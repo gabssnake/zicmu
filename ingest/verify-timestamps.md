@@ -1,7 +1,6 @@
 # Prompt: verify album timestamps
 
-Use this prompt with an AI assistant to guide manual timestamp review for a flagged album.
-
+Use with an AI assistant to guide manual timestamp review for a flagged album.
 Run `node ingest/validate-reviews.js` first to see which albums need attention.
 
 ---

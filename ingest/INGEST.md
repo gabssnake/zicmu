@@ -17,7 +17,7 @@ Jacques Brel - Grand Jacques (1954).mp3
 The filename stem (everything before `.mp3`) becomes the album ID:
 `Led Zeppelin - Led Zeppelin IV (1971)`, `Jacques Brel - Grand Jacques (1954)`
 
-The ID is used as the key in `albums.json` and as the basename for the companion files in `media/` (`<id>.jpg`, `<id>.json`). Keep filenames unambiguous — no two albums should share the same stem.
+The ID is used as the key in `albums.json` and as the basename for the companion files in `media/` (`<id>.jpg`, `<id>.json`). Keep filenames unambiguous, no two albums should share the same stem.
 
 Year is optional but helps the cover and track lookup match the right release.
 
@@ -32,22 +32,22 @@ node ingest/fetch-covers.js    # Cover Art Archive + iTunes fallback → media/<
 node ingest/build-albums.js    # assembles albums.json from the above
 ```
 
-`fetch-tracks.js` is rate-limited (~1s per API call) — expect 2–3 minutes for a full run.
+`fetch-tracks.js` is rate-limited (~1s per API call), expect 2–3 minutes for a full run.
 
 ## What each script does
 
-**parse-albums.js** — reads every `.mp3` in `media/`, parses the filename, writes one JSON entry per album to `ingest/cache/albums-raw.json`. Run this whenever you add or rename files.
+**parse-albums.js**, reads every `.mp3` in `media/`, parses the filename, writes one JSON entry per album to `ingest/cache/albums-raw.json`. Run this whenever you add or rename files.
 
-**fetch-tracks.js** — for each album, queries MusicBrainz then Discogs for the track list, then runs `ffmpeg` silence detection on the audio and cross-references the two sources. Writes per-album JSON to `ingest/cache/tracks/`. Albums where the API and audio don't agree closely are flagged `needsManualReview: true`.
+**fetch-tracks.js**, for each album, queries MusicBrainz then Discogs for the track list, then runs `ffmpeg` silence detection on the audio and cross-references the two sources. Writes per-album JSON to `ingest/cache/tracks/`. Albums where the API and audio don't agree closely are flagged `needsManualReview: true`.
 
-**fetch-covers.js** — searches MusicBrainz Cover Art Archive (by release group, more reliable than individual releases), falls back to iTunes if nothing is found. Downloads to `media/<id>.jpg`. Writes a status report to `ingest/cache/covers-report.json`.
+**fetch-covers.js**, searches MusicBrainz Cover Art Archive (by release group, more reliable than individual releases), falls back to iTunes if nothing is found. Downloads to `media/<id>.jpg`. Writes a status report to `ingest/cache/covers-report.json`.
 
-**build-albums.js** — combines `albums-raw.json`, `tracks/`, and `covers-report.json` into the final `albums.json`. Strips internal metadata fields. Carries `_review: true` forward for albums that need timestamp work.
+**build-albums.js**, combines `albums-raw.json`, `tracks/`, and `covers-report.json` into per-album JSON files in `media/`, then runs `build-index.js` to assemble `albums.json`. Carries `_review: true` in `media/<id>.json` for albums that need timestamp work.
 
 ## Optional: embed metadata into the MP3
 
 After running the four pipeline steps, you can embed all album metadata directly into each
-MP3 file using ID3v2 tags — title, artist, year, cover art (`APIC`), and chapter markers
+MP3 file using ID3v2 tags, title, artist, year, cover art (`APIC`), and chapter markers
 (`CHAP` + `CTOC`) for each track. This makes albums self-contained and portable.
 
 ```bash
@@ -67,13 +67,14 @@ chapter markers and cover art from ID3v2 without needing `albums.json`.
 node ingest/validate-reviews.js
 ```
 
-This lists albums flagged for manual timestamp review. A flag means the silence detector and the API disagree on track boundaries — it's expected on live albums and compilations, not a failure. Fix timestamps by editing `ingest/cache/tracks/<id>.json` and re-running `build-albums.js`. See `ingest/verify-timestamps.md` for the step-by-step workflow.
+This lists albums flagged for manual timestamp review. A flag means the silence detector and the API disagree on track boundaries, it's expected on live albums and compilations, not a failure. Fix timestamps by editing `ingest/cache/tracks/<id>.json` and re-running `build-albums.js`. See `ingest/verify-timestamps.md` for the step-by-step workflow.
 
 ## Refreshing an existing album
 
-`build-albums.js` skips albums that already have an entry in `albums.json` to preserve manual edits. To force a full rebuild for a specific album — for example after correcting its cover or track timestamps — delete its entry from `albums.json`, then re-run:
+`build-albums.js` skips albums that already have a `media/<id>.json` to preserve manual edits. To force a full rebuild for a specific album — for example after correcting its cover or track timestamps — delete its record and re-run:
 
 ```bash
+rm media/"<id>.json"
 node ingest/build-albums.js
 ```
 
@@ -91,13 +92,13 @@ node ingest/build-albums.js
 
 ```
 ingest/cache/
-  albums-raw.json      generated by parse-albums.js — one entry per MP3
-  covers-report.json   generated by fetch-covers.js — cover fetch status per album
-  tracks/              generated by fetch-tracks.js — one JSON per album with timestamps
+  albums-raw.json      generated by parse-albums.js, one entry per MP3
+  covers-report.json   generated by fetch-covers.js, cover fetch status per album
+  tracks/              generated by fetch-tracks.js, one JSON per album with timestamps
 ```
 
 All of these can be deleted and rebuilt by re-running the pipeline.
 
 ## Per-album records in media/
 
-`build-albums.js` writes a `media/<id>.json` for each album. These are the approved per-album records — not throwaway. `build-albums.js` skips albums that already have a JSON in `media/` so that manual timestamp corrections are preserved across rebuilds. Edit these files to fix track data; then re-run `build-albums.js` (which calls `build-index.js` indirectly through `serve.js`) to update `albums.json`.
+`build-albums.js` writes a `media/<id>.json` for each album. These are the approved per-album records, not throwaway. `build-albums.js` skips albums that already have a JSON in `media/` so that manual timestamp corrections are preserved across rebuilds. Edit these files to fix track data, then re-run `build-albums.js` to update `albums.json`.
