@@ -40,7 +40,6 @@ export default function createPlayer(albums) {
 
   function applySeek(start) {
     _audio.currentTime = start;
-    _audio.play().catch(() => {});
   }
 
   function seekWhenReady(start) {
@@ -130,6 +129,7 @@ export default function createPlayer(albums) {
     emitTrackChange();
     const start = album.tracks[trackIndex].start;
     if (start > 0) seekWhenReady(start);
+    play();
   }
 
   function seekToTrack(index) {
