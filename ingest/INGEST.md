@@ -23,6 +23,8 @@ Year is optional but helps the cover and track lookup match the right release.
 
 ## Pipeline
 
+Requires Node.js 18+ and ffmpeg (`brew install ffmpeg`).
+
 Run in order from the project root:
 
 ```bash

@@ -26,6 +26,8 @@ See `skins/SKINS.md` for the full skin contract.
 
 ## Running locally
 
+Prerequisites: Node.js 18+. The ingest pipeline also requires ffmpeg (`brew install ffmpeg`).
+
 ```bash
 node serve.js
 ```
