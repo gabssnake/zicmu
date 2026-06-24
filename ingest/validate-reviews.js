@@ -2,12 +2,16 @@
 // List albums that still have _review:true, with track details.
 // Run after build-albums.js to see what needs manual timestamp verification.
 
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const albums = JSON.parse(readFileSync(join(__dirname, '..', 'albums.json'), 'utf8'));
+const MEDIA_DIR = join(__dirname, '..', 'media');
+const albums = readdirSync(MEDIA_DIR)
+  .filter(f => f.endsWith('.json'))
+  .sort()
+  .map(f => JSON.parse(readFileSync(join(MEDIA_DIR, f), 'utf8')));
 
 const flagged = albums.filter(a => a._review);
 
