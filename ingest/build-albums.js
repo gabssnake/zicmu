@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -52,4 +53,4 @@ for (const album of rawAlbums) {
 }
 
 console.log(`wrote ${written} new album files, skipped ${skipped} (already exist)`);
-console.log(`run node ingest/build-index.js to rebuild albums.json`);
+spawnSync('node', [join(__dirname, 'build-index.js')], { stdio: 'inherit' });
